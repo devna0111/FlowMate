@@ -1,0 +1,263 @@
+<head>
+    <meta charset="UTF-8" />
+    <title>문서 기반 챗봇</title>
+    <style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        height: 100vh;
+    }
+
+    /* 왼쪽: 업로드 및 선택 */
+    #leftPanel {
+        width: 30%;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-right: 1px solid #ddd;
+        overflow-y: auto;
+    }
+
+    /* 오른쪽: 챗봇 */
+    #rightPanel {
+        width: 70%;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    /* 챗 영역 */
+    .chat-container {
+        flex: 1;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .bubble {
+        margin: 10px;
+        padding: 10px 15px;
+        border-radius: 15px;
+        max-width: 70%;
+    }
+
+    .bubble.user {
+        background-color: #d0eaff;
+        text-align: right;
+        margin-left: auto;
+    }
+
+    .bubble.bot {
+        background-color: #eee;
+        text-align: left;
+        margin-right: auto;
+    }
+
+    #messageInput {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        margin-bottom: 10px;
+    }
+
+    button {
+        padding: 10px 20px;
+    }
+
+    #progressBar {
+        width: 100%;
+    }
+    </style>
+</head>
+<body>
+    <!-- 왼쪽 영역 -->
+    <div id="leftPanel">
+    <h2>📄 문서를 업로드해주세요</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file" required />
+        <button type="submit">업로드</button>
+    </form>
+
+    <div id="loadingSection" style="display:none; margin-top: 20px;">
+        <p>🔄 업로드 중... 벡터화 처리 중입니다.</p>
+        <progress id="progressBar" value="0" max="100"></progress>
+    </div>
+
+    <div id="docSelectSection" style="margin-top: 20px;">
+        <h3>📂 업로드된 문서 선택</h3>
+        <select id="fileSelector" style="width: 100%;">
+        <option disabled selected>문서를 선택하세요</option>
+        </select>
+    </div>
+    </div>
+
+    <!-- 오른쪽 영역 -->
+    <div id="rightPanel">
+    <h2>🤖 문서 기반 챗봇</h2>
+    <div id="chatSection" style="flex: 1;">
+        <div id="chatArea" class="chat-container"></div>
+        <form id="chatForm">
+    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+    <textarea 
+    id="messageInput" 
+    rows="2" 
+    style="flex: 1; resize: none; padding: 10px; font-size: 14px;" 
+    placeholder="질문을 입력하세요 (Enter 또는 Ctrl+Enter로 전송)"
+    ></textarea>
+
+    <button 
+    type="submit" 
+    style="
+        padding: 10px 18px;
+        font-size: 14px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    "
+    >
+    질문
+    </button>
+</div>
+</form>
+    </div>
+    </div>
+
+    <script>
+    const uploadForm = document.getElementById("uploadForm");
+    const loadingSection = document.getElementById("loadingSection");
+    const progressBar = document.getElementById("progressBar");
+    const chatArea = document.getElementById("chatArea");
+    const fileSelector = document.getElementById("fileSelector");
+    const messageInput = document.getElementById("messageInput");
+
+    let currentFilePath = "sample.txt";
+
+    // 타이핑 애니메이션 함수
+    async function typeTextEffect(element, text, speed = 30) {
+        element.textContent = "";
+        for (let i = 0; i < text.length; i++) {
+        element.textContent += text[i];
+        await new Promise(resolve => setTimeout(resolve, speed));
+        }
+    }
+
+    uploadForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const file = document.getElementById("fileInput").files[0];
+        if (!file) return alert("파일을 선택해주세요.");
+
+        uploadForm.style.display = "none";
+        loadingSection.style.display = "block";
+        progressBar.value = 0;
+
+        let progress = 0;
+        const interval = setInterval(() => {
+        if (progress < 90) {
+            progress += 10;
+            progressBar.value = progress;
+        }
+        }, 400);
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch("/upload/", { method: "POST", body: formData });
+        const result = await response.json();
+
+        clearInterval(interval);
+        progressBar.value = 100;
+
+        if (result.success) {
+        currentFilePath = result.file_path;
+        await loadFileList();
+        } else {
+        alert("업로드 실패: " + result.message);
+        }
+
+        loadingSection.style.display = "none";
+        uploadForm.style.display = "block";
+    });
+
+    async function loadFileList() {
+        const res = await fetch("/list_files/");
+        const data = await res.json();
+
+        fileSelector.innerHTML = '<option disabled selected>기존에 올린 문서들</option>';
+        data.files.forEach(file => {
+        const option = document.createElement("option");
+        option.value = file;
+        option.text = file;
+        fileSelector.appendChild(option);
+        });
+    }
+
+    fileSelector.addEventListener("change", function () {
+        currentFilePath = "temp/" + this.value;
+    });
+
+    document.getElementById("chatForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const message = messageInput.value;
+        if (!message.trim()) return;
+
+     // 사용자 메시지 출력
+    const userDiv = document.createElement("div");
+    userDiv.className = "bubble user";
+    userDiv.textContent = `👤: ${message}`;
+    chatArea.appendChild(userDiv);
+
+    // 로딩 메시지 준비
+    const botDiv = document.createElement("div");
+    botDiv.className = "bubble bot";
+    botDiv.id = "loadingBubble";
+    botDiv.textContent = "🤖: 답변을 생성 중입니다...";
+    chatArea.appendChild(botDiv);
+
+    messageInput.value = "";
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+    // 서버 요청
+    const res = await fetch("/ask/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, file_path: currentFilePath })
+    });
+
+    const data = await res.json();
+    const answer = data.answer;
+
+    // 기존 로딩 메시지 제거 후 새 div 추가
+    botDiv.remove();
+
+    const botAnswerDiv = document.createElement("div");
+    botAnswerDiv.className = "bubble bot";
+    chatArea.appendChild(botAnswerDiv);
+
+    // ✅ 타이핑 애니메이션 적용
+    await typeTextEffect(botAnswerDiv, "🤖: " + answer);
+
+    chatArea.scrollTop = chatArea.scrollHeight;
+    });
+
+  // Ctrl+Enter 또는 Enter로 전송
+    messageInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && (e.ctrlKey || !e.shiftKey)) {
+        e.preventDefault();
+        document.getElementById("chatForm").dispatchEvent(new Event("submit"));
+    }
+    });
+
+    window.onload = loadFileList;
+    </script>
+</body>
+</html>

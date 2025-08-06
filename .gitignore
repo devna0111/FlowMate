@@ -1,0 +1,7 @@
+.env
+.venv/
+sample.txt
+temp_imgs/
+temp_wav/
+temp/
+media/

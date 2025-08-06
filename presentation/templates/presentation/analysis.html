@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>발표 영상 분석 - FlowMate</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <style>
+        .loading { color: #888; }
+        .presentation-container { max-width: 960px; margin: auto; padding: 2rem; }
+        .results-grid { display: flex; gap: 2rem; }
+        .result-card, .feedback-section { background: #fafafa; border-radius: 12px; padding: 1rem; flex: 1; margin-bottom: 1rem; }
+        .result-card table { width: 100%; border-collapse: collapse; font-size: 1rem; }
+        .result-card td { padding: 6px 10px; border-bottom: 1px solid #eaeaea; }
+        .result-card tr:last-child td { border-bottom: none; }
+        .result-card td:first-child { font-weight: bold; color: #0057b8; width: 42%; background: #f2f6fa; }
+        .result-card td:last-child { color: #222; }
+        .action-buttons { margin-top: 1rem; text-align: right; }
+        .upload-section { margin-bottom: 1.5rem; }
+        .feedback-section { background: #e6f1fb; border: 1.5px solid #b5d5f6; }
+        .feedback-content { font-size: 1.07rem; color: #22336e; white-space: pre-line; }
+        .option-grid { display: flex; gap: 1.5rem; }
+        .option-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; min-width: 130px; }
+    </style>
+</head>
+<body>
+<div class="presentation-container">
+    <div class="presentation-header">
+        <h1>발표 영상 분석</h1>
+        <p>발표 영상을 업로드하여 자세, 음성, 내용을 분석하고 피드백을 받으세요</p>
+    </div>
+
+    <!-- 1. 업로드 UI -->
+    <div class="upload-section">
+        <div class="video-upload-zone" id="videoDropZone">
+            <div class="upload-content">
+                <div class="upload-icon"></div>
+                <h3>발표 영상 업로드</h3>
+                <p>MP4, AVI, MOV 파일을 지원합니다</p>
+                <button class="upload-btn" id="videoUploadBtn">파일 선택</button>
+                <span id="selectedFileName" style="margin-left: 12px; color: #0057b8; font-weight: 500;"></span>
+                <input type="file" id="videoInput" accept="video/*" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 분석 항목 선택 -->
+    <div class="analysis-options">
+        <h3>분석 항목 선택</h3>
+        <div class="option-grid">
+            <div class="option-card">
+                <input type="checkbox" id="poseAnalysis" checked>
+                <label for="poseAnalysis">
+                    <div class="option-icon"></div>
+                    <h4>자세 분석</h4>
+                    <p>발표자의 자세와 제스처를 분석합니다</p>
+                </label>
+            </div>
+            <div class="option-card">
+                <input type="checkbox" id="audioAnalysis" checked>
+                <label for="audioAnalysis">
+                    <div class="option-icon"></div>
+                    <h4>음성 분석</h4>
+                    <p>목소리 톤, 속도, 발음을 분석합니다</p>
+                </label>
+            </div>
+            <div class="option-card">
+                <input type="checkbox" id="contentAnalysis" checked>
+                <label for="contentAnalysis">
+                    <div class="option-icon"></div>
+                    <h4>내용 분석</h4>
+                    <p>발표 내용과 구조를 분석합니다</p>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 분석 결과 영역 -->
+    <div class="analysis-results" id="analysisResults" style="display: none;">
+        <h3>분석 결과</h3>
+        <div class="results-grid">
+            <div class="result-card">
+                <h4>자세 분석 결과</h4>
+                <div class="result-content" id="poseResults">
+                    <div class="loading">분석 중...</div>
+                </div>
+            </div>
+            <div class="result-card">
+                <h4>음성 분석 결과</h4>
+                <div class="result-content" id="audioResults">
+                    <div class="loading">분석 중...</div>
+                </div>
+            </div>
+            <div class="result-card">
+                <h4>내용 분석 결과</h4>
+                <div class="result-content" id="contentResults">
+                    <div class="loading">분석 중...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feedback-section">
+            <h4>종합 피드백</h4>
+            <div class="feedback-content" id="feedbackContent">
+                <div class="loading">피드백 생성 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 액션 버튼 -->
+    <div class="action-buttons">
+        <button class="analyze-btn" id="startAnalysis" disabled>분석 시작</button>
+        <button class="download-btn" id="downloadReport" style="display: none;">보고서 다운로드</button>
+    </div>
+</div>
+
+<script>
+    // 결과 key 한글 매핑
+    const keyNameMap = {
+        // 음성
+        "duration_sec": "전체 길이 (초)",
+        "avg_pitch": "평균 피치 (Hz)",
+        "energy_variation": "억양 변화량",
+        "speech_tempo": "말 속도 (BPM 추정)",
+        // 자세
+        "total_frames": "총 프레임 수",
+        "face_detected_frames": "얼굴 인식 프레임 수",
+        "gesture_detected_frames": "제스처 감지 프레임 수",
+        "face_detection_ratio": "얼굴 인식 비율",
+        "gesture_ratio": "제스처 인식 비율"
+    };
+
+    // dict → table로 변환
+    function dictToTable(dict) {
+        let html = '<table>';
+        for (let key in dict) {
+            const displayKey = keyNameMap[key] || key;
+            html += `<tr>
+                <td>${displayKey}</td>
+                <td>${dict[key]}</td>
+            </tr>`;
+        }
+        html += '</table>';
+        return html;
+    }
+
+    // 1. 파일 업로드
+    document.getElementById('videoUploadBtn').addEventListener('click', function () {
+        document.getElementById('videoInput').click();
+    });
+
+    document.getElementById('videoInput').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        const fileNameSpan = document.getElementById('selectedFileName');
+        if (!file) {
+            fileNameSpan.innerText = "";
+            return;
+        }
+        fileNameSpan.innerText = file.name;
+
+        const formData = new FormData();
+        formData.append('video', file);
+
+        const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        document.getElementById('videoUploadBtn').disabled = true;
+
+        fetch('/presentation/upload/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('업로드 성공! 파일명: ' + data.filename);
+                document.getElementById('startAnalysis').disabled = false;
+                window.uploadedVideoPath = data.video_path;
+                document.getElementById('videoUploadBtn').disabled = true;
+            } else {
+                alert('업로드 실패: ' + data.error);
+                document.getElementById('videoUploadBtn').disabled = false;
+                fileNameSpan.innerText = "";
+            }
+        })
+        .catch(err => {
+            alert('업로드 중 오류 발생');
+            console.error(err);
+            document.getElementById('videoUploadBtn').disabled = false;
+            fileNameSpan.innerText = "";
+        });
+    });
+
+    // 2. 분석 시작
+    document.getElementById('startAnalysis').addEventListener('click', function () {
+        const videoPath = window.uploadedVideoPath;
+        if (!videoPath) {
+            alert('먼저 파일을 업로드해 주세요!');
+            return;
+        }
+        // 체크박스 상태
+        const pose = document.getElementById('poseAnalysis').checked;
+        const audio = document.getElementById('audioAnalysis').checked;
+        const content = document.getElementById('contentAnalysis').checked;
+
+        const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // 분석 결과 영역 보여주기 + 로딩 메시지
+        document.getElementById('analysisResults').style.display = 'block';
+        ['poseResults','audioResults','contentResults','feedbackContent'].forEach(id => {
+            document.getElementById(id).innerHTML = '<div class="loading">분석 중...</div>';
+        });
+
+        fetch('/presentation/analyze/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                video_path: videoPath,
+                pose: pose,
+                audio: audio,
+                content: content,
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('poseResults').innerHTML =
+                    data.visual_features ? dictToTable(data.visual_features) : '분석 미실행';
+                document.getElementById('audioResults').innerHTML =
+                    data.audio_features ? dictToTable(data.audio_features) : '분석 미실행';
+                document.getElementById('contentResults').innerHTML =
+                    (data.summary ? "<b>요약:</b><br>" + data.summary + "<br><br>" : "") +
+                    (data.transcript ? "<b>원문 일부:</b><br>" + data.transcript : "");
+                document.getElementById('feedbackContent').innerText = data.feedback || '';
+            } else {
+                alert('분석 실패: ' + data.error);
+            }
+        })
+        .catch(err => {
+            alert('분석 중 오류 발생: ' + err);
+            console.error(err);
+        });
+    });
+</script>
+</body>
+</html>
