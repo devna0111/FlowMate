@@ -2,248 +2,592 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>발표 영상 분석 - FlowMate</title>
     <meta name="csrf-token" content="{{ csrf_token }}">
     <style>
-        .loading { color: #888; }
-        .presentation-container { max-width: 960px; margin: auto; padding: 2rem; }
-        .results-grid { display: flex; gap: 2rem; }
-        .result-card, .feedback-section { background: #fafafa; border-radius: 12px; padding: 1rem; flex: 1; margin-bottom: 1rem; }
-        .result-card table { width: 100%; border-collapse: collapse; font-size: 1rem; }
-        .result-card td { padding: 6px 10px; border-bottom: 1px solid #eaeaea; }
-        .result-card tr:last-child td { border-bottom: none; }
-        .result-card td:first-child { font-weight: bold; color: #0057b8; width: 42%; background: #f2f6fa; }
-        .result-card td:last-child { color: #222; }
-        .action-buttons { margin-top: 1rem; text-align: right; }
-        .upload-section { margin-bottom: 1.5rem; }
-        .feedback-section { background: #e6f1fb; border: 1.5px solid #b5d5f6; }
-        .feedback-content { font-size: 1.07rem; color: #22336e; white-space: pre-line; }
-        .option-grid { display: flex; gap: 1.5rem; }
-        .option-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; min-width: 130px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .upload-section {
+            margin-bottom: 3rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed #4a90e2;
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            background: #f8fbff;
+            transition: all 0.3s;
+            cursor: pointer;
+            margin: 2rem 0;
+        }
+
+        .upload-zone.dragover {
+            border-color: #0969da;
+            background: #f6f8ff;
+            transform: scale(1.02);
+        }
+
+        .upload-zone h3 {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 1rem;
+            font-weight: normal;
+        }
+
+        .upload-zone p {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .upload-btn {
+            background: #4a90e2;
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .selected-file {
+            margin-top: 1rem;
+            color: #f5576c;
+            font-weight: 500;
+        }
+
+        .analysis-options {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .option-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            flex: 1;
+            max-width: 280px;
+            min-width: 250px;
+        }
+
+        .option-card:nth-child(1) {
+            background: #e8f5e8;
+            border-color: #c3e6c3;
+        }
+
+        .option-card:nth-child(2) {
+            background: #fff2e8;
+            border-color: #f4d4a7;
+        }
+
+        .option-card:nth-child(3) {
+            background: #e8f0ff;
+            border-color: #b3d1ff;
+        }
+
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .option-card.selected {
+            border-color: #4a90e2;
+        }
+
+        .option-card h4 {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .option-card p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .option-card input[type="checkbox"] {
+            display: none;
+        }
+
+        .start-analysis {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .analyze-btn {
+            background: #8fb4d3;
+            color: white;
+            padding: 0.8rem 2.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .analyze-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .result-card h4 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .result-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .result-table td:first-child {
+            font-weight: 600;
+            color: #667eea;
+            background: #f8f9ff;
+            width: 45%;
+        }
+
+        .result-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .feedback-section {
+            background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+            border: 2px solid #b3e5fc;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feedback-section h4 {
+            color: #1976d2;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback-section h4:before {
+            content: "💡";
+            font-size: 24px;
+        }
+
+        .feedback-content {
+            color: #333;
+            line-height: 1.7;
+            white-space: pre-line;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .upload-zone {
+                padding: 2rem;
+            }
+
+            .options-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .option-card {
+                max-width: 400px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="presentation-container">
-    <div class="presentation-header">
-        <h1>발표 영상 분석</h1>
-        <p>발표 영상을 업로드하여 자세, 음성, 내용을 분석하고 피드백을 받으세요</p>
-    </div>
-
-    <!-- 1. 업로드 UI -->
-    <div class="upload-section">
-        <div class="video-upload-zone" id="videoDropZone">
-            <div class="upload-content">
-                <div class="upload-icon"></div>
-                <h3>발표 영상 업로드</h3>
-                <p>MP4, AVI, MOV 파일을 지원합니다</p>
-                <button class="upload-btn" id="videoUploadBtn">파일 선택</button>
-                <span id="selectedFileName" style="margin-left: 12px; color: #0057b8; font-weight: 500;"></span>
-                <input type="file" id="videoInput" accept="video/*" style="display: none;">
-            </div>
+    <div class="header">
+        <div class="logo">FlowMate Chat</div>
+        <div class="nav-buttons">
+            <a href="/" class="nav-btn">홈</a>
+            <a href="/chat_page/" class="nav-btn">채팅</a>
+            <a href="#" class="nav-btn" style="background: #f0f0f0;">발표분석</a>
         </div>
     </div>
 
-    <!-- 2. 분석 항목 선택 -->
-    <div class="analysis-options">
-        <h3>분석 항목 선택</h3>
-        <div class="option-grid">
-            <div class="option-card">
-                <input type="checkbox" id="poseAnalysis" checked>
-                <label for="poseAnalysis">
-                    <div class="option-icon"></div>
+    <div class="container">
+        <div class="upload-section">
+            <div class="upload-zone" id="uploadZone">
+                <h3>동영상 업로드</h3>
+                <p>MP4, AVI, MOV 파일을 지원합니다</p>
+                <button class="upload-btn" id="uploadBtn">파일 선택</button>
+                <input type="file" id="videoInput" accept="video/*" style="display: none;">
+                <div class="selected-file" id="selectedFile"></div>
+            </div>
+        </div>
+
+        <div class="analysis-options">
+            <div class="options-grid">
+                <div class="option-card selected" data-option="pose">
                     <h4>자세 분석</h4>
                     <p>발표자의 자세와 제스처를 분석합니다</p>
-                </label>
-            </div>
-            <div class="option-card">
-                <input type="checkbox" id="audioAnalysis" checked>
-                <label for="audioAnalysis">
-                    <div class="option-icon"></div>
+                    <input type="checkbox" id="poseAnalysis" checked>
+                </div>
+                <div class="option-card selected" data-option="audio">
                     <h4>음성 분석</h4>
                     <p>목소리 톤, 속도, 발음을 분석합니다</p>
-                </label>
-            </div>
-            <div class="option-card">
-                <input type="checkbox" id="contentAnalysis" checked>
-                <label for="contentAnalysis">
-                    <div class="option-icon"></div>
+                    <input type="checkbox" id="audioAnalysis" checked>
+                </div>
+                <div class="option-card selected" data-option="content">
                     <h4>내용 분석</h4>
                     <p>발표 내용과 구조를 분석합니다</p>
-                </label>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. 분석 결과 영역 -->
-    <div class="analysis-results" id="analysisResults" style="display: none;">
-        <h3>분석 결과</h3>
-        <div class="results-grid">
-            <div class="result-card">
-                <h4>자세 분석 결과</h4>
-                <div class="result-content" id="poseResults">
-                    <div class="loading">분석 중...</div>
-                </div>
-            </div>
-            <div class="result-card">
-                <h4>음성 분석 결과</h4>
-                <div class="result-content" id="audioResults">
-                    <div class="loading">분석 중...</div>
-                </div>
-            </div>
-            <div class="result-card">
-                <h4>내용 분석 결과</h4>
-                <div class="result-content" id="contentResults">
-                    <div class="loading">분석 중...</div>
+                    <input type="checkbox" id="contentAnalysis" checked>
                 </div>
             </div>
         </div>
 
-        <div class="feedback-section">
-            <h4>종합 피드백</h4>
-            <div class="feedback-content" id="feedbackContent">
-                <div class="loading">피드백 생성 중...</div>
+        <div class="start-analysis">
+            <button class="analyze-btn" id="startAnalysis" disabled>분석 시작</button>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <h3 class="section-title">분석 결과</h3>
+            <div class="results-grid">
+                <div class="result-card">
+                    <h4>자세 분석 결과</h4>
+                    <div id="poseResults">
+                        <div class="loading">분석 중...</div>
+                    </div>
+                </div>
+                <div class="result-card">
+                    <h4>음성 분석 결과</h4>
+                    <div id="audioResults">
+                        <div class="loading">분석 중...</div>
+                    </div>
+                </div>
+                <div class="result-card">
+                    <h4>내용 분석 결과</h4>
+                    <div id="contentResults">
+                        <div class="loading">분석 중...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feedback-section">
+                <h4>종합 피드백</h4>
+                <div class="feedback-content" id="feedbackContent">
+                    <div class="loading">피드백 생성 중...</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 4. 액션 버튼 -->
-    <div class="action-buttons">
-        <button class="analyze-btn" id="startAnalysis" disabled>분석 시작</button>
-        <button class="download-btn" id="downloadReport" style="display: none;">보고서 다운로드</button>
-    </div>
-</div>
+    <script>
+        const keyNameMap = {
+            "duration_sec": "전체 길이 (초)",
+            "avg_pitch": "평균 피치 (Hz)",
+            "energy_variation": "억양 변화량",
+            "speech_tempo": "말 속도 (BPM 추정)",
+            "total_frames": "총 프레임 수",
+            "face_detected_frames": "얼굴 인식 프레임 수",
+            "gesture_detected_frames": "제스처 감지 프레임 수",
+            "face_detection_ratio": "얼굴 인식 비율",
+            "gesture_ratio": "제스처 인식 비율"
+        };
 
-<script>
-    // 결과 key 한글 매핑
-    const keyNameMap = {
-        // 음성
-        "duration_sec": "전체 길이 (초)",
-        "avg_pitch": "평균 피치 (Hz)",
-        "energy_variation": "억양 변화량",
-        "speech_tempo": "말 속도 (BPM 추정)",
-        // 자세
-        "total_frames": "총 프레임 수",
-        "face_detected_frames": "얼굴 인식 프레임 수",
-        "gesture_detected_frames": "제스처 감지 프레임 수",
-        "face_detection_ratio": "얼굴 인식 비율",
-        "gesture_ratio": "제스처 인식 비율"
-    };
-
-    // dict → table로 변환
-    function dictToTable(dict) {
-        let html = '<table>';
-        for (let key in dict) {
-            const displayKey = keyNameMap[key] || key;
-            html += `<tr>
-                <td>${displayKey}</td>
-                <td>${dict[key]}</td>
-            </tr>`;
-        }
-        html += '</table>';
-        return html;
-    }
-
-    // 1. 파일 업로드
-    document.getElementById('videoUploadBtn').addEventListener('click', function () {
-        document.getElementById('videoInput').click();
-    });
-
-    document.getElementById('videoInput').addEventListener('change', function (event) {
-        const file = event.target.files[0];
-        const fileNameSpan = document.getElementById('selectedFileName');
-        if (!file) {
-            fileNameSpan.innerText = "";
-            return;
-        }
-        fileNameSpan.innerText = file.name;
-
-        const formData = new FormData();
-        formData.append('video', file);
-
-        const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        document.getElementById('videoUploadBtn').disabled = true;
-
-        fetch('/presentation/upload/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrftoken,
+        function dictToTable(dict) {
+            let html = '<table class="result-table">';
+            for (let key in dict) {
+                const displayKey = keyNameMap[key] || key;
+                html += `<tr>
+                    <td>${displayKey}</td>
+                    <td>${dict[key]}</td>
+                </tr>`;
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('업로드 성공! 파일명: ' + data.filename);
-                document.getElementById('startAnalysis').disabled = false;
-                window.uploadedVideoPath = data.video_path;
-                document.getElementById('videoUploadBtn').disabled = true;
-            } else {
-                alert('업로드 실패: ' + data.error);
-                document.getElementById('videoUploadBtn').disabled = false;
-                fileNameSpan.innerText = "";
-            }
-        })
-        .catch(err => {
-            alert('업로드 중 오류 발생');
-            console.error(err);
-            document.getElementById('videoUploadBtn').disabled = false;
-            fileNameSpan.innerText = "";
-        });
-    });
-
-    // 2. 분석 시작
-    document.getElementById('startAnalysis').addEventListener('click', function () {
-        const videoPath = window.uploadedVideoPath;
-        if (!videoPath) {
-            alert('먼저 파일을 업로드해 주세요!');
-            return;
+            html += '</table>';
+            return html;
         }
-        // 체크박스 상태
-        const pose = document.getElementById('poseAnalysis').checked;
-        const audio = document.getElementById('audioAnalysis').checked;
-        const content = document.getElementById('contentAnalysis').checked;
 
-        const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        // 분석 결과 영역 보여주기 + 로딩 메시지
-        document.getElementById('analysisResults').style.display = 'block';
-        ['poseResults','audioResults','contentResults','feedbackContent'].forEach(id => {
-            document.getElementById(id).innerHTML = '<div class="loading">분석 중...</div>';
+        const uploadZone = document.getElementById('uploadZone');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const videoInput = document.getElementById('videoInput');
+        const selectedFile = document.getElementById('selectedFile');
+        const startAnalysisBtn = document.getElementById('startAnalysis');
+        const resultsSection = document.getElementById('resultsSection');
+
+        // 드래그 앤 드롭
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
         });
 
-        fetch('/presentation/analyze/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken,
-            },
-            body: JSON.stringify({
-                video_path: videoPath,
-                pose: pose,
-                audio: audio,
-                content: content,
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        uploadZone.addEventListener('click', () => {
+            videoInput.click();
+        });
+
+        uploadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            videoInput.click();
+        });
+
+        videoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        });
+
+        function handleFileUpload(file) {
+            selectedFile.textContent = file.name;
+            uploadBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('video', file);
+
+            const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            fetch('/presentation/upload/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                }
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('poseResults').innerHTML =
-                    data.visual_features ? dictToTable(data.visual_features) : '분석 미실행';
-                document.getElementById('audioResults').innerHTML =
-                    data.audio_features ? dictToTable(data.audio_features) : '분석 미실행';
-                document.getElementById('contentResults').innerHTML =
-                    (data.summary ? "<b>요약:</b><br>" + data.summary + "<br><br>" : "") +
-                    (data.transcript ? "<b>원문 일부:</b><br>" + data.transcript : "");
-                document.getElementById('feedbackContent').innerText = data.feedback || '';
-            } else {
-                alert('분석 실패: ' + data.error);
-            }
-        })
-        .catch(err => {
-            alert('분석 중 오류 발생: ' + err);
-            console.error(err);
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.uploadedVideoPath = data.video_path;
+                    startAnalysisBtn.disabled = false;
+                } else {
+                    alert('업로드 실패: ' + data.error);
+                    uploadBtn.disabled = false;
+                    selectedFile.textContent = '';
+                }
+            })
+            .catch(err => {
+                alert('업로드 중 오류 발생');
+                console.error(err);
+                uploadBtn.disabled = false;
+                selectedFile.textContent = '';
+            });
+        }
+
+        // 분석 옵션 카드 클릭
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+                card.classList.toggle('selected', checkbox.checked);
+            });
         });
-    });
-</script>
+
+        // 분석 시작
+        startAnalysisBtn.addEventListener('click', () => {
+            const videoPath = window.uploadedVideoPath;
+            if (!videoPath) {
+                alert('먼저 파일을 업로드해 주세요!');
+                return;
+            }
+
+            const pose = document.getElementById('poseAnalysis').checked;
+            const audio = document.getElementById('audioAnalysis').checked;
+            const content = document.getElementById('contentAnalysis').checked;
+
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+            ['poseResults','audioResults','contentResults','feedbackContent'].forEach(id => {
+                document.getElementById(id).innerHTML = '<div class="loading">분석 중...</div>';
+            });
+
+            const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            fetch('/presentation/analyze/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({
+                    video_path: videoPath,
+                    pose: pose,
+                    audio: audio,
+                    content: content,
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('poseResults').innerHTML =
+                        data.visual_features ? dictToTable(data.visual_features) : '분석 미실행';
+                    document.getElementById('audioResults').innerHTML =
+                        data.audio_features ? dictToTable(data.audio_features) : '분석 미실행';
+                    document.getElementById('contentResults').innerHTML =
+                        (data.summary ? "<b>요약:</b><br>" + data.summary + "<br><br>" : "");
+                    
+                    document.getElementById('feedbackContent').innerText = data.feedback || '';
+                } else {
+                    alert('분석 실패: ' + data.error);
+                }
+            })
+            .catch(err => {
+                alert('분석 중 오류 발생: ' + err);
+                console.error(err);
+            });
+        });
+    </script>
 </body>
 </html>

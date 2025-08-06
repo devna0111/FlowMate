@@ -1,8 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMate Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .hero-section {
+            text-align: center;
+            max-width: 800px;
+            margin-bottom: 3rem;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .feature-cards {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            max-width: 600px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex: 1;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        /*.card-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        } */
+
+        .feature-card:first-child .card-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .feature-card:last-child .card-icon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .feature-card:first-child .card-icon:before {
+            content: "";
+        }
+
+        .feature-card:last-child .card-icon:before {
+            content: "";
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            flex: 1;
+        }
+
+        .card-button {
+            background: linear-gradient(135deg, #75767bff 0%, #5d5762ff 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .feature-card:last-child .card-button {
+            background: linear-gradient(135deg, #958b96ff 0%rgba(123, 113, 114, 1)6c 100%);
+        }
+
+        .card-button:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .feature-cards {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
 <body>
-<div class="home-container">
-    <div class="hero-section">
-        <h1 class="hero-title">FlowMate Chat</h1>
-        <p class="hero-subtitle">AI 모델이 브라우저에서 실행됩니다</p>
+    <div class="header">
+        <div class="logo">FlowMate Chat</div>
+        <div class="nav-buttons">
+            <a href="#" class="nav-btn">홈</a>
+            <a href="{% url 'chat_page' %}" class="nav-btn">채팅</a>
+            <a href="{% url 'presentation' %}" class="nav-btn">발표분석</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="hero-section">
+            <h1 class="hero-title">FlowMate Chat</h1>
+            <p class="hero-subtitle">AI 모델이 브라우저에서 실행됩니다</p>
+        </div>
+
         <div class="feature-cards">
             <div class="feature-card">
                 <div class="card-icon"></div>
@@ -12,10 +209,11 @@
             </div>
             <div class="feature-card">
                 <div class="card-icon"></div>
-                <h3>발표</h3>
-                <p>발표영상을 업로드하고 AI 피드백을 받으세요</p>
-                <a href="{% url 'presentation' %}" class="card-button">시작하기</a>
+                <h3>발표 분석</h3>
+                <p>발표 영상을 분석하고 피드백을 받으세요</p>
+                <a href="{% url 'presentation' %}" class="card-button">분석하기</a>
             </div>
+        </div>
     </div>
-</div>
 </body>
+</html>

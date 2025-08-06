@@ -1,299 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <title>문서 기반 챗봇</title>
-    <style>
-    * { box-sizing: border-box; }
-    body {
-        font-family: sans-serif;
-        margin: 0; padding: 0; display: flex; height: 100vh;
-    }
-    #leftPanel {
-        width: 30%; background-color: #f9f9f9; padding: 20px;
-        border-right: 1px solid #ddd; overflow-y: auto;
-    }
-    #rightPanel {
-        width: 70%; display: flex; flex-direction: column; padding: 20px;
-    }
-    .chat-container {
-        flex: 1; overflow-y: auto; border: 1px solid #ccc; padding: 10px;
-        border-radius: 8px; margin-bottom: 10px; background: #fff;
-    }
-    .bubble {
-        margin: 10px; padding: 10px 15px; border-radius: 15px; max-width: 70%;
-        word-break: break-word;
-    }
-    .bubble.user {
-        background-color: #d0eaff; text-align: right; margin-left: auto;
-    }
-    .bubble.bot {
-        background-color: #eee; text-align: left; margin-right: auto;
-    }
-    #messageInput {
-        width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 10px;
-    }
-    button { padding: 10px 20px; }
-    #progressBar { width: 100%; }
-    #fileSelector option[selected] { font-weight: bold; }
-    .list-section { margin-top: 24px; }
-    .file-list, .generated-list {
-        width: 100%;
-        margin-top: 8px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        background: #fff;
-        max-height: 140px;
-        overflow-y: auto;
-        padding: 0;
-    }
-    .file-list li, .generated-list li {
-        list-style: none;
-        padding: 7px 10px;
-        border-bottom: 1px solid #eee;
-        cursor: pointer;
-        font-size: 15px;
-    }
-    .file-list li.selected {
-        background: #e6f3ff;
-        font-weight: bold;
-    }
-    .generated-list li {
-        color: #2a6b9b;
-    }
-    .generated-list li:last-child, .file-list li:last-child { border-bottom: none; }
-    .download-btn {
-        margin-left: 10px;
-        padding: 3px 12px;
-        background: #4095e5;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        font-size: 13px;
-        cursor: pointer;
-    }
-    /* 마크다운 내용 영역 스타일 */
-    .markdown-content h1, .markdown-content h2, .markdown-content h3 { margin-top: 1.2em; }
-    .markdown-content ul, .markdown-content ol { margin-left: 1.2em; }
-    .markdown-content table { border-collapse: collapse; margin: 12px 0; width: 100%; }
-    .markdown-content th, .markdown-content td { border: 1px solid #bbb; padding: 4px 8px; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMate Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+        }
+
+        .left-panel {
+            width: 300px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        .upload-section {
+            margin-bottom: 2rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed #d0d7de;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            background: #f6f8fa;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-zone.dragover {
+            border-color: #0969da;
+            background: #dbeafe;
+        }
+
+        /*.upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }*/
+
+        .upload-icon:before {
+            content: "";
+        }
+
+        .upload-zone h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-zone p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #877b7bff 0%, #999292dc 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .file-list {
+            margin-top: 1.5rem;
+        }
+
+        .file-list h4 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .uploaded-files, .generated-files {
+            background: white;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .file-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-item:hover {
+            background: #f8f9fa;
+        }
+
+        .file-item.selected {
+            background: #e6f7ff;
+            font-weight: 500;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .download-btn {
+            padding: auto;
+            background: linear-gradient(135deg, #a8a8a8ff 0%, #777777ff 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .chat-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .chat-header h2 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-header p {
+            color: #666;
+        }
+
+        .chat-area {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #dfdfdfff 100%);
+            color: white;
+        }
+
+        .message.bot .message-avatar {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 1rem;
+            border-radius: 12px;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: #f8f9fa;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-area {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #0969da;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #f0f0f0;
+            border-radius: 2px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .markdown-content {
+            max-width: none;
+        }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            margin-top: 1.2em;
+            color: #333;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.2em;
+            line-height: 1.6;
+        }
+
+        .markdown-content table {
+            border-collapse: collapse;
+            margin: 12px 0;
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .markdown-content th, .markdown-content td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .markdown-content th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .download-link {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .download-link:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .left-panel {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- 왼쪽 영역 -->
-    <div id="leftPanel">
-        <h2>📄 문서 업로드</h2>
-        <form id="uploadForm" enctype="multipart/form-data">
-            <input type="file" id="fileInput" name="file" required />
-            <button type="submit">업로드</button>
-        </form>
-        <div id="loadingSection" style="display:none; margin-top: 20px;">
-            <p>🔄 업로드 중... 벡터화 처리 중입니다.</p>
-            <progress id="progressBar" value="0" max="100"></progress>
-        </div>
-        <!-- 업로드 파일 리스트 -->
-        <div class="list-section">
-            <h3>📂 업로드한 문서</h3>
-            <ul id="uploadedFileList" class="file-list"></ul>
-        </div>
-        <!-- 생성파일 리스트 -->
-        <div class="list-section">
-            <h3>📝 생성된 보고서/발표자료</h3>
-            <ul id="generatedFileList" class="generated-list"></ul>
+    <div class="header">
+        <div class="logo">FlowMate Chat</div>
+        <div class="nav-buttons">
+            <a href="/" class="nav-btn">홈</a>
+            <a href="#" class="nav-btn" style="background: #f0f0f0;">채팅</a>
+            <a href="/presentation/" class="nav-btn">발표분석</a>
         </div>
     </div>
 
-    <!-- 오른쪽 영역 -->
-    <div id="rightPanel">
-        <h2>🤖 문서 기반 챗봇</h2>
-        <div id="chatSection" style="flex: 1;">
-            <div id="chatArea" class="chat-container"></div>
-            <form id="chatForm">
-                <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
-                    <textarea 
-                        id="messageInput" 
-                        rows="2" 
-                        style="flex: 1; resize: none; padding: 10px; font-size: 14px;" 
-                        placeholder="질문을 입력하세요 (Enter 또는 Ctrl+Enter로 전송)"
-                    ></textarea>
-                    <button 
-                        type="submit" 
-                        style="padding: 10px 18px; font-size: 14px; background-color: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                        질문
-                    </button>
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="upload-section">
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon"></div>
+                    <h3>파일을 여기에 드래그하거나 클릭하여 업로드하세요</h3>
+                    <p>PDF, DOCX, TXT, CSV 등 지원</p>
+                    <button class="upload-btn" id="uploadBtn">파일 선택</button>
+                    <input type="file" id="fileInput" style="display: none;" accept=".pdf,.docx,.txt,.csv,.xlsx">
                 </div>
-            </form>
+                <div id="loadingSection" style="display: none; margin-top: 1rem;">
+                    <div class="loading">업로드 중... 벡터화 처리 중입니다.</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="file-list">
+                <h4> 업로드된 문서</h4>
+                <div id="uploadedFileList" class="uploaded-files"></div>
+            </div>
+
+            <div class="file-list">
+                <h4> 생성된 보고서/발표자료</h4>
+                <div id="generatedFileList" class="generated-files"></div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>FlowMate Chat</h2>
+                <p>신입사원 교육에 필요한 문서를 업로드하고, AI 도우미와 자유롭게 대화해보세요.</p>
+                <p>모든 데이터는 로컬에서 처리되며, Qwen 2.5 기반의 AI가 동작하여 외부 서버로의 정보 유출 없이 안전하게 이용하실 수 있습니다.</p>
+            </div>
+
+            <div class="chat-area" id="chatArea">
+                <div class="message bot">
+                    <div class="message-avatar">●</div>
+                    <div class="message-content">안녕하세요! 어떻게 도움을 드릴까요?</div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <form id="chatForm">
+                    <div class="input-container">
+                        <textarea 
+                            id="messageInput" 
+                            class="message-input"
+                            rows="2" 
+                            placeholder="Enter to send, Shift + Enter to wrap, : to search prompts, ; to use commands"
+                        ></textarea>
+                        <button type="submit" class="send-btn">전송</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
-    const uploadForm = document.getElementById("uploadForm");
-    const loadingSection = document.getElementById("loadingSection");
-    const progressBar = document.getElementById("progressBar");
-    const chatArea = document.getElementById("chatArea");
-    const uploadedFileList = document.getElementById("uploadedFileList");
-    const generatedFileList = document.getElementById("generatedFileList");
-    const messageInput = document.getElementById("messageInput");
+        const uploadZone = document.getElementById('uploadZone');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const loadingSection = document.getElementById('loadingSection');
+        const progressFill = document.getElementById('progressFill');
+        const chatArea = document.getElementById('chatArea');
+        const uploadedFileList = document.getElementById('uploadedFileList');
+        const generatedFileList = document.getElementById('generatedFileList');
+        const messageInput = document.getElementById('messageInput');
 
-    let currentFilePath = "sample.txt";
+        let currentFilePath = "sample.txt";
 
-    // 파일 업로드
-    uploadForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const file = document.getElementById("fileInput").files[0];
-        if (!file) return alert("파일을 선택해주세요.");
-
-        uploadForm.style.display = "none";
-        loadingSection.style.display = "block";
-        progressBar.value = 0;
-        let progress = 0;
-        const interval = setInterval(() => {
-            if (progress < 90) {
-                progress += 10;
-                progressBar.value = progress;
-            }
-        }, 400);
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch("/upload/", { method: "POST", body: formData });
-        const result = await response.json();
-
-        clearInterval(interval);
-        progressBar.value = 100;
-
-        if (result.success) {
-            currentFilePath = result.file_path;
-            await loadUploadedFileList();
-        } else {
-            alert("업로드 실패: " + result.message);
-        }
-        loadingSection.style.display = "none";
-        uploadForm.style.display = "block";
-    });
-
-    // 업로드된 파일 리스트 로딩
-    async function loadUploadedFileList() {
-        const res = await fetch("/list_files/");
-        const data = await res.json();
-        uploadedFileList.innerHTML = "";
-        data.files.forEach(file => {
-            const li = document.createElement("li");
-            li.textContent = file;
-            li.onclick = () => {
-                // 파일 선택
-                Array.from(uploadedFileList.children).forEach(c => c.classList.remove("selected"));
-                li.classList.add("selected");
-                currentFilePath = "temp/" + file;
-            };
-            // 첫 파일 선택 유지
-            if ("temp/" + file === currentFilePath) li.classList.add("selected");
-            uploadedFileList.appendChild(li);
-        });
-    }
-
-    // 생성된 파일 리스트 로딩 (보고서/발표자료)
-    async function loadGeneratedFileList() {
-        const res = await fetch("/list_generated_files/");
-        const data = await res.json();
-        generatedFileList.innerHTML = "";
-        data.files.forEach(file => {
-            const li = document.createElement("li");
-            li.textContent = file;
-            // 다운로드 버튼 생성
-            const btn = document.createElement("button");
-            btn.className = "download-btn";
-            btn.innerText = "다운로드";
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                // /download_report/?filename=xxx로 다운로드
-                window.open(`/download_report/?filename=${encodeURIComponent(file)}`);
-            };
-            li.appendChild(btn);
-            generatedFileList.appendChild(li);
-        });
-    }
-
-    // 채팅 기능
-    document.getElementById("chatForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const message = messageInput.value.trim();
-        if (!message) return;
-
-        // 사용자 메시지 출력
-        const userDiv = document.createElement("div");
-        userDiv.className = "bubble user";
-        userDiv.textContent = `👤: ${message}`;
-        chatArea.appendChild(userDiv);
-
-        // 로딩 메시지 준비
-        const botDiv = document.createElement("div");
-        botDiv.className = "bubble bot";
-        botDiv.id = "loadingBubble";
-        botDiv.textContent = "🤖: 답변을 생성 중입니다...";
-        chatArea.appendChild(botDiv);
-
-        messageInput.value = "";
-        chatArea.scrollTop = chatArea.scrollHeight;
-
-        // 서버 요청
-        const res = await fetch("/ask/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message, file_path: currentFilePath })
-        });
-
-        const contentType = res.headers.get('content-type');
-        botDiv.remove();
-
-        // (1) 보고서/발표자료 생성 응답: 마크다운 + 파일 다운로드
-        if (contentType && contentType.includes("application/json")) {
-            const data = await res.json();
-
-            if (data.report_markdown) {
-                // 마크다운 → HTML 변환
-                const htmlContent = marked.parse(data.report_markdown);
-
-                const reportDiv = document.createElement("div");
-                reportDiv.className = "bubble bot";
-                reportDiv.innerHTML = `
-                    <div class="markdown-content" style="margin-bottom:12px; max-width: 550px;">${htmlContent}</div>
-                    <a href="${data.report_file_url}" download
-                        style="display:inline-block;padding:8px 18px;background:#4095e5;color:#fff;border-radius:6px;text-decoration:none;">
-                        📄 생성 파일 다운로드
-                    </a>
-                `;
-                chatArea.appendChild(reportDiv);
-                chatArea.scrollTop = chatArea.scrollHeight;
-
-                // 생성 파일 리스트 갱신
-                await loadGeneratedFileList();
-                return;
-            }
-
-            // (2) 일반 답변
-            const botAnswerDiv = document.createElement("div");
-            botAnswerDiv.className = "bubble bot";
-            chatArea.appendChild(botAnswerDiv);
-            await typeTextEffect(botAnswerDiv, "🤖: " + (data.answer ?? ""));
-            chatArea.scrollTop = chatArea.scrollHeight;
-            return;
-        }
-    });
-
-    // Ctrl+Enter 또는 Enter로 전송
-    messageInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" && (e.ctrlKey || !e.shiftKey)) {
+        // 드래그 앤 드롭 이벤트
+        uploadZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            document.getElementById("chatForm").dispatchEvent(new Event("submit"));
-        }
-    });
+            uploadZone.classList.add('dragover');
+        });
 
-    // 최초 로딩 시 두 리스트 모두 불러오기
-    window.onload = async () => {
-        await loadUploadedFileList();
-        await loadGeneratedFileList();
-    };
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        uploadZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        uploadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        });
+
+        async function handleFileUpload(file) {
+            uploadZone.style.display = 'none';
+            loadingSection.style.display = 'block';
+            progressFill.style.width = '0%';
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                if (progress < 90) {
+                    progress += 10;
+                    progressFill.style.width = progress + '%';
+                }
+            }, 400);
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("/upload/", { 
+                    method: "POST", 
+                    body: formData 
+                });
+                const result = await response.json();
+
+                clearInterval(interval);
+                progressFill.style.width = '100%';
+
+                if (result.success) {
+                    currentFilePath = result.file_path;
+                    await loadFileList();
+                    addMessage('bot', `파일 "${file.name}"이 성공적으로 업로드되었습니다!`);
+                } else {
+                    addMessage('bot', '업로드 실패: ' + result.message);
+                }
+            } catch (error) {
+                clearInterval(interval);
+                addMessage('bot', '업로드 중 오류가 발생했습니다.');
+            }
+
+            setTimeout(() => {
+                loadingSection.style.display = 'none';
+                uploadZone.style.display = 'block';
+            }, 1000);
+        }
+
+        async function loadFileList() {
+            try {
+                const res = await fetch("/list_files/");
+                const data = await res.json();
+
+                uploadedFileList.innerHTML = '';
+                data.files.forEach(file => {
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    div.textContent = file;
+                    div.onclick = () => {
+                        // 파일 선택
+                        Array.from(uploadedFileList.children).forEach(c => c.classList.remove('selected'));
+                        div.classList.add('selected');
+                        currentFilePath = 'temp/' + file;
+                    };
+                    // 첫 파일 선택 유지
+                    if ('temp/' + file === currentFilePath) div.classList.add('selected');
+                    uploadedFileList.appendChild(div);
+                });
+            } catch (error) {
+                console.error('파일 목록 로드 오류:', error);
+            }
+        }
+
+        async function loadGeneratedFileList() {
+            try {
+                const res = await fetch("/list_generated_files/");
+                const data = await res.json();
+                
+                generatedFileList.innerHTML = '';
+                data.files.forEach(file => {
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    
+                    const fileName = document.createElement('span');
+                    fileName.textContent = file;
+                    
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'download-btn';
+                    downloadBtn.textContent = '💾';
+                    downloadBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        window.open(`/download_report/?filename=${encodeURIComponent(file)}`);
+                    };
+                    
+                    div.appendChild(fileName);
+                    div.appendChild(downloadBtn);
+                    generatedFileList.appendChild(div);
+                });
+            } catch (error) {
+                console.error('생성된 파일 목록 로드 오류:', error);
+            }
+        }
+
+        function addMessage(type, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = type === 'user' ? '○' : '●';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.textContent = content;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        async function typeTextEffect(element, text, speed = 30) {
+            element.textContent = "";
+            for (let i = 0; i < text.length; i++) {
+                element.textContent += text[i];
+                await new Promise(resolve => setTimeout(resolve, speed));
+            }
+        }
+
+        document.getElementById("chatForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            addMessage('user', message);
+            
+            const botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'message bot';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '●';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content loading';
+            messageContent.textContent = '답변을 생성 중입니다...';
+            
+            botMessageDiv.appendChild(avatar);
+            botMessageDiv.appendChild(messageContent);
+            chatArea.appendChild(botMessageDiv);
+
+            messageInput.value = "";
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+            try {
+                const res = await fetch("/ask/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message, file_path: currentFilePath })
+                });
+
+                const contentType = res.headers.get('content-type');
+                botMessageDiv.removeChild(messageContent);
+
+                // (1) 보고서/발표자료 생성 응답: 마크다운 + 파일 다운로드
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+
+                    if (data.report_markdown) {
+                        // 마크다운 → HTML 변환
+                        const htmlContent = marked.parse(data.report_markdown);
+
+                        const newMessageContent = document.createElement('div');
+                        newMessageContent.className = 'message-content';
+                        newMessageContent.innerHTML = `
+                            <div class="markdown-content" style="margin-bottom:12px;">${htmlContent}</div>
+                            <a href="${data.report_file_url}" download class="download-link">
+                                생성 파일 다운로드
+                            </a>
+                        `;
+                        botMessageDiv.appendChild(newMessageContent);
+                        chatArea.scrollTop = chatArea.scrollHeight;
+
+                        // 생성 파일 리스트 갱신
+                        await loadGeneratedFileList();
+                        return;
+                    }
+
+                    // (2) 일반 답변
+                    const newMessageContent = document.createElement('div');
+                    newMessageContent.className = 'message-content';
+                    botMessageDiv.appendChild(newMessageContent);
+                    await typeTextEffect(newMessageContent, data.answer || '');
+                } else {
+                    const newMessageContent = document.createElement('div');
+                    newMessageContent.className = 'message-content';
+                    newMessageContent.textContent = '답변 형식을 인식할 수 없습니다.';
+                    botMessageDiv.appendChild(newMessageContent);
+                }
+            } catch (error) {
+                const newMessageContent = document.createElement('div');
+                newMessageContent.className = 'message-content';
+                newMessageContent.textContent = '답변 생성 중 오류가 발생했습니다.';
+                botMessageDiv.appendChild(newMessageContent);
+            }
+
+            chatArea.scrollTop = chatArea.scrollHeight;
+        });
+
+        messageInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById("chatForm").dispatchEvent(new Event("submit"));
+            }
+        });
+
+        window.onload = async () => {
+            await loadFileList();
+            await loadGeneratedFileList();
+        };
     </script>
 </body>
+</html>

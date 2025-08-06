@@ -17,7 +17,7 @@ def transcribe_audio(audio_path: str) -> str:
     """
     model = WhisperModel("large-v2",
                         device="cuda",
-                        compute_type="float32"
+                        compute_type="int8"
                         )  # 또는 "cpu", "int8"
 
     segments, info = model.transcribe(audio_path, language="ko")
