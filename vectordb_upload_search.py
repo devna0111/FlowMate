@@ -66,7 +66,7 @@ def data_to_vectorstore(file_path: str):
 
     return qdrant
 
-def question_answer_with_memory(file_path: str, query: str, memory: BufferMemory) -> str:
+def question_answer_with_memory(file_path: str, query: str, memory: BufferMemory,tokens=256) -> str:
     vector_store = data_to_vectorstore(file_path)
 
     # 중요 키워드일 경우 전체 검색 확대
@@ -85,7 +85,7 @@ def question_answer_with_memory(file_path: str, query: str, memory: BufferMemory
 [이전 대화 이력]
 {history}
 
-[질문사항] 
+[질문 및 요청 사항] 
 {query}
 
 [참고자료]
