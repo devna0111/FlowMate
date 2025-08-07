@@ -51,8 +51,8 @@ def split_chunks(file_path: str) -> list:
     print("chunks split 끝")
     result = []
     print("Document 객체화")
-    for chunk in chunks :
-        result.append(Document(page_content=chunk, metadata={"source": file_path, "type": "body"}))
+    for idx, chunk in enumerate(chunks) :
+        result.append(Document(page_content=chunk, metadata={"source": file_path, "type": "body", "order": idx }))
     return result
 
 

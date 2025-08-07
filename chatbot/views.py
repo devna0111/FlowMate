@@ -58,6 +58,7 @@ def ask_question(request):
 
         report_keywords = ['보고서', '보고서 작성', '보고서 초안', '보고서 생성']
         pptx_keywords = ['발표문', '발표 자료', '발표자료', '발표 초안', '발표 자료 초안']
+        summary_keywords = ['요약해줘', '요약본', '3줄요약', '요약문', '핵심만',"정리해줘",'간추려줘']
 
         if any(k in query for k in report_keywords):
             prompt = (
@@ -73,7 +74,8 @@ def ask_question(request):
             markdown = question_answer_with_memory(file_path, prompt, memory, tokens=4096).strip()
 
             unique_id = uuid.uuid4().hex
-            docx_name = f"report_{unique_id}.docx"
+            # docx_name = f"report_{unique_id}.docx"
+            docx_name = "report_sample.docx"
             docx_path = os.path.join(UPLOADS_DIR, docx_name)  # uploads 폴더 사용
             markdown_to_styled_docx(markdown, output_path=docx_path)
 
@@ -110,7 +112,8 @@ def ask_question(request):
             markdown = question_answer_with_memory(file_path, prompt, memory, tokens=4096).strip()
 
             unique_id = uuid.uuid4().hex
-            pptx_name = f"report_{unique_id}.pptx"
+            # pptx_name = f"pptx_{unique_id}.pptx"
+            pptx_name = f"pptx_sample.pptx"
             pptx_path = os.path.join(UPLOADS_DIR, pptx_name)  # uploads 폴더 사용
             save_structured_text_to_pptx(markdown, output_path=pptx_path)
 
@@ -118,6 +121,22 @@ def ask_question(request):
                 "report_markdown": markdown,
                 "report_file_url": f"/download_report/?filename={pptx_name}"
             })
+            
+        elif any(k in query for k in summary_keywords):
+            prompt = f"""
+                    [system]
+                    당신은 요약을 도와주는 어시스턴트입니다.
+                    
+                    - 구체적인 출처 경로 또는 예시를 제시하고
+                    - 문장 구조를 명확히 하며
+                    - 실무적으로 바로 활용할 수 있도록
+                    - 반복되는 말은 하지 않고
+                    
+                    한국어로 정확하고 친절하게 답변해주세요.
+                    [user] {query}
+                    """ 
+            answer = question_answer_with_memory(file_path, query, memory, tokens=1024)
+            return JsonResponse({"answer": answer})
 
         answer = question_answer_with_memory(file_path, query, memory)
         return JsonResponse({"answer": answer})
