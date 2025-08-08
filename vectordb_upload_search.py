@@ -58,10 +58,11 @@ def get_qdrant_client():
 
 def get_llm(tokens=256):
     """LLM 캐싱 - max_tokens 호환성 문제 해결"""
+    llm = "qwen2.5:7b-instruct"
     try:
         # 최신 버전에서는 num_predict 사용
         return ChatOllama(
-            model='qwen2.5vl:7b', 
+            model=llm, 
             temperature=0.2, 
             num_predict=tokens
         )
@@ -69,14 +70,14 @@ def get_llm(tokens=256):
         try:
             # 구버전에서는 max_tokens 사용
             return ChatOllama(
-                model='qwen2.5vl:7b', 
+                model=llm, 
                 temperature=0.2, 
                 max_tokens=tokens
             )
         except TypeError:
             # 둘 다 안 되면 기본 설정만
             return ChatOllama(
-                model='qwen2.5vl:7b', 
+                model=llm, 
                 temperature=0.2, 
             )
 
@@ -184,7 +185,7 @@ def smart_determine_params(query: str):
     
     # 요약 (전체적인 이해 필요)
     elif any(keyword in query for keyword in ['요약', '정리', '핵심', '간추']):
-        return 1000, 1536, "요약"
+        return 1000, 1024, "요약"
     
     # 구체적 질문 (관련성 높은 문서 필요)
     elif any(keyword in query for keyword in ['어떻게', '왜', '무엇', '언제', '어디서', '누가']):
@@ -192,7 +193,7 @@ def smart_determine_params(query: str):
     
     # 일반 질문
     else:
-        return 100, 1024, "일반"
+        return 100, 512, "일반"
 
 def create_enhanced_prompt(query: str, combined_text: str, history: str, task_type: str):
     """향상된 프롬프트 생성"""
@@ -210,6 +211,7 @@ def create_enhanced_prompt(query: str, combined_text: str, history: str, task_ty
         return f"""{base_context}
 
 위 문서를 바탕으로 사용자의 요청에 대해 체계적이고 전문적으로 답변해주세요.
+- 한국어로 답변합니다.
 - 문서의 핵심 내용을 충분히 반영하세요
 - 논리적 구조로 답변을 구성하세요
 - 구체적인 근거와 예시를 포함하세요
@@ -227,6 +229,7 @@ def create_enhanced_prompt(query: str, combined_text: str, history: str, task_ty
 - 사용자의 요청이 없다면 문제는 5개만 생성합니다.
 - 각 문제에 대한 정답과 해설을 제공하세요
 - 난이도를 적절히 조절하세요
+- 반복되는 말을 하지 마세요
 
 퀴즈:"""
 
@@ -238,6 +241,7 @@ def create_enhanced_prompt(query: str, combined_text: str, history: str, task_ty
 - 중요도에 따라 내용을 구조화하세요
 - 구체적인 데이터나 예시가 있다면 포함하세요
 - 간결하지만 포괄적으로 정리하세요
+- 반복되는 말을 하지 마세요
 
 요약:"""
 
@@ -249,6 +253,7 @@ def create_enhanced_prompt(query: str, combined_text: str, history: str, task_ty
 - 단계별로 명확하게 설명하세요
 - 문서에 명시되지 않은 부분은 "문서에서 확인할 수 없습니다"라고 명시하세요
 - 가능한 한 구체적인 예시나 수치를 포함하세요
+- 반복되는 말을 하지 마세요
 
 답변:"""
 
@@ -260,6 +265,7 @@ def create_enhanced_prompt(query: str, combined_text: str, history: str, task_ty
 - 명확하고 이해하기 쉽게 설명하세요
 - 추가적인 맥락이나 배경 정보도 제공하세요
 - 문서 범위를 벗어나는 추측은 피하세요
+- 답변은 너무 길지 않게 해주세요
 
 답변:"""
 

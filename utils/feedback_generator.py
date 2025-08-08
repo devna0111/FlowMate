@@ -17,6 +17,7 @@ def generate_feedback(summary: str, audio_features: dict, visual_features: dict)
 - 제스처 사용 비율: {gesture_ratio}
 
 위 발표 데이터를 바탕으로 다음 기준에 따라 **아주 구체적이고 실전적인 발표 코칭 피드백**을 작성해줘.
+**반드시 한국어(Korean)로 답변해야해**
 
 1. 발표의 장점 3가지와, 개선해야 할 점 3가지 이상을 반드시 구분해서 제시해줘.  
 2. 각 항목마다 실제 상황에서 바로 쓸 수 있는 개선 방법, 예시, 연습 팁을 자세히 설명해줘.  
@@ -35,7 +36,7 @@ def generate_feedback(summary: str, audio_features: dict, visual_features: dict)
 
 (꼭 2,000자 이상으로 작성해줘)
 """)
-    llm = ChatOllama(model="qwen2.5vl:7b")  # 적절한 모델로 교체 가능
+    llm = ChatOllama(model="qwen2.5:7b-instruct")  # 적절한 모델로 교체 가능
     chain = prompt_template | llm
     return chain.invoke({
         **audio_features,

@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import chat_page, upload_file, ask_question, list_uploaded_files, home, download_report, list_generated_files
+from .views import chat_page, upload_file, ask_question, list_uploaded_files, home, download_report, list_generated_files,clear_history
 
 
 urlpatterns = [
@@ -11,4 +11,5 @@ urlpatterns = [
     path("list_generated_files/", list_generated_files, name="list_generated_files"),  # ← 추가!
     path("presentation/", include('presentation.urls')),
     path("download_report/", download_report, name="download_report"),
+    path("clear_history/", clear_history, name="clear_history"),
 ]

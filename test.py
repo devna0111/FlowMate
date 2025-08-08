@@ -13,5 +13,5 @@
 # model = WhisperModel("base", device="cuda", compute_type="float16")
 # print("faster-whisper GPU 모델 로드 성공!")
 
-import tempfile
-print(tempfile.gettempdir())
+import tensorflow as tf
+print("현재 GPU 감지:", tf.config.list_physical_devices('GPU'))

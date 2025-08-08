@@ -449,6 +449,7 @@
                 <h2>FlowMate Chat</h2>
                 <p>신입사원 교육에 필요한 문서를 업로드하고, AI 도우미와 자유롭게 대화해보세요.</p>
                 <p>모든 데이터는 로컬에서 처리되며, Qwen 2.5 기반의 AI가 동작하여 외부 서버로의 정보 유출 없이 안전하게 이용하실 수 있습니다.</p>
+                <button id="resetChatBtn">대화 리셋</button>
             </div>
 
             <div class="chat-area" id="chatArea">
@@ -739,6 +740,30 @@
             await loadFileList();
             await loadGeneratedFileList();
         };
+
+    document.getElementById('resetChatBtn').addEventListener('click', function() {
+    fetch('/clear_history/', {method: 'POST'})
+        .then(response => response.json())
+        .then(data => {
+            if(data.cleared) {
+                // 대화 내용 클리어
+                document.getElementById('chatArea').innerHTML = '';
+
+                // 리셋 안내 메시지 표시
+                const resetNotice = document.createElement('div');
+                resetNotice.className = 'bubble system'; // 스타일용 클래스
+                resetNotice.textContent = '💡 대화 리셋 완료: 이제 새로운 대화를 시작하세요!';
+                document.getElementById('chatArea').appendChild(resetNotice);
+
+                // 추가로, alert창도 띄우고 싶으면 아래 주석 해제
+                alert('대화가 리셋되었습니다!');
+                Array.from(uploadedFileList.children).forEach(c => c.classList.remove('selected'));
+
+                // (3) 선택 파일을 기본값으로 되돌리기 (예: sample.txt)
+                currentFilePath = currentFilePath ; 
+            }
+        });
+});
     </script>
 </body>
 </html>
