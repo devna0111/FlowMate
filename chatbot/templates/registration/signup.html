@@ -178,7 +178,7 @@
     </style>
 </head>
 <body>
-    <a href="/" class="back-to-home">← 홈으로 돌아가기</a>
+    <a href="{% url 'home' %}" class="back-to-home">← 홈으로 돌아가기</a>
     
     <div class="auth-container">
         <div class="logo">FlowMate AI</div>
@@ -193,8 +193,8 @@
             </div>
         </div>
 
-        <form method="post" action="/signup/">
-            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <form method="post" action="{% url 'signup' %}">
+            {% csrf_token %}
             
             <div class="form-group">
                 <label for="id_username" class="form-label">사용자 ID</label>
@@ -225,7 +225,7 @@
         </form>
 
         <div class="auth-links">
-            <p>이미 계정이 있으신가요? <a href="/login/">로그인</a></p>
+            <p>이미 계정이 있으신가요? <a href="{% url 'user_login' %}">로그인</a></p>
         </div>
     </div>
 

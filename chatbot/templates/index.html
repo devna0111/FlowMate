@@ -129,7 +129,7 @@
             transform: none;
         }
 
-        .dropdown:hover .dropdown-content {
+        .dropdown-content.show {
             display: block;
         }
 
@@ -511,7 +511,7 @@
                 margin-top: 0;
             }
             
-            .dropdown:hover .dropdown-content {
+            .dropdown-content.show {
                 display: block;
             }
             
@@ -555,8 +555,8 @@
                     <li><a href="{% url 'chat_page' %}">채팅</a></li>
                     <li><a href="/presentation/">분석</a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropbtn">{{ user.username }} ▼</a>
-                        <div class="dropdown-content">
+                        <a href="#" class="dropbtn" id="indexDropdownBtn">{{ user.username }} ▼</a>
+                        <div class="dropdown-content" id="indexDropdownContent">
                             <a href="/admin/">관리자</a>
                             <a href="{% url 'user_logout' %}">로그아웃</a>
                         </div>
@@ -680,19 +680,28 @@
             </p>
             <div class="math-visualization">
                 <div class="math-card">
-                    <h3>미적분학</h3>
-                    <div class="math-formula">손실 함수 최소화 → 미분 / 편미분, 체인 룰, 경사하강법 / 역전파, 파라미터 업데이트</div>
-                    <p>경사하강법과 역전파 알고리즘의 핵심<br>모델 최적화의 수학적 기반</p>
+                    <h2>미적분학</h2><br>
+                    <!--<div class="math-formula">손실 함수 최소화 → 미분 / 편미분, 체인 룰, 경사하강법 / 역전파, 파라미터 업데이트</div>-->
+                    <h3>경사하강법과 역전파 알고리즘의 핵심<br>모델 최적화의 수학적 기반</h3><br>
+                    <h4>1. 손실 함수 최소화 → 미분</h4><br>
+                    <h4>2. 편미분, 체인 룰, 경사하강법</h4><br>
+                    <h4>3. 역전파, 파라미터 업데이트</h4><br>
                 </div>
                 <div class="math-card">
-                    <h3>선형대수학</h3>
-                    <div class="math-formula">벡터·행렬 연산 / 내적, 행렬곱, 노름, 소프트맥스 / Attention, 임베딩 변환</div>
-                    <p>벡터 임베딩과 차원 축소<br>데이터 표현의 수학적 원리</p>
+                    <h2>선형대수학</h2><br>
+                    <!--<div class="math-formula">벡터·행렬 연산 / 내적, 행렬곱, 노름, 소프트맥스 / Attention, 임베딩 변환</div>-->
+                    <h3>벡터·행렬 연산<br>데이터 표현의 수학적 원리</h3><br>
+                    <h4>1. 내적, 행렬곱, 노름, 소프트맥스</h4><br>
+                    <h4>2. 벡터 임베딩과 차원 축소</h4><br>
+                    <h4>3. Attention, 임베딩 변환</h4><br>
                 </div>
                 <div class="math-card">
-                    <h3>확률통계</h3>
-                    <div class="math-formula">확률 이론이 핵심 / 조건부 확률, 베이즈 정리, 기대값, 크로스 엔트로피 / 다음 토큰 확률 예측, 손실 계산</div>
-                    <p>베이즈 추론과 불확실성 모델링<br>신뢰도 높은 예측의 기반</p>
+                    <h2>확률통계</h2><br>
+                    <!--<div class="math-formula">확률 이론이 핵심 / 조건부 확률, 베이즈 정리, 기대값, 크로스 엔트로피 / 다음 토큰 확률 예측, 손실 계산</div>-->
+                    <h3>베이즈 추론과 불확실성 모델링<br>신뢰도 높은 예측의 기반</h3><br>
+                    <h4>1. 확률 이론이 핵심</h4><br>
+                    <h4>2. 조건부 확률, 베이즈 정리, 기대값, 크로스 엔트로피</h4><br>
+                    <h4>3. 다음 토큰 확률 예측, 손실 계산</h4><br>
                 </div>
             </div>
         </div>
@@ -737,11 +746,11 @@
             <div class="team-stats">
                 <div class="stat-card">
                     <span class="stat-number">5+</span>
-                    <div class="stat-label">AI/ML/DL/LLM/VLM 프로젝트 경험</div>
+                    <div class="stat-label">AI/ ML/ DL/ LLM/ VLM <br>프로젝트 경험</div>
                 </div>
                 <div class="stat-card">
                     <span class="stat-number">10+</span>
-                    <div class="stat-label">오픈소스<br>활용</div>
+                    <div class="stat-label">Ollama, HuggingFace<br>오픈소스 활용</div>
                 </div>
                 <div class="stat-card">
                     <span class="stat-number">100%</span>
@@ -783,12 +792,51 @@
                 </div>
             </div>
             <div class="contact-info">
-                <h3>연락처 & 서비스</h3>
+                <!--<h3>연락처 & 서비스</h3>
                 <p>고정현 | spellrain@naver.com | <a href = 'https://github.com/k-j-hyun'>git연결하기</a></p>
                 <p>김도현 | kimdohyun222@naver.com |  <a href = 'https://github.com/starfish99600'>git연결하기</a></p>
                 <p>정종혁 | devna0111@gmail.com |  <a href = 'https://github.com/devna0111'>git연결하기</a></p>
                 <p>장슬찬 | jsc980115@naver.com |  <a href = 'https://github.com/jangseulchan'>git연결하기</a></p>
-                <p>박선우 | du5968@daum.net |  <a href = 'https://github.com/gulbiworker'>git연결하기</a></p>
+                <p>박선우 | du5968@daum.net |  <a href = 'https://github.com/gulbiworker'>git연결하기</a></p>-->
+                <h3 style="text-align:center; color:white;">연락처 & 서비스</h3><br>
+                <table style="border-collapse: collapse; margin: 0 auto; text-align: left; color:white;">
+                    <tr>
+                        <td style="padding: 6px 20px;">고정현</td>
+                        <td style="padding: 6px 20px; text-align:center;">spellrain@naver.com</td>
+                        <td style="padding: 6px 20px;">
+                            <a href="https://github.com/k-j-hyun" style="color: white; text-decoration: none;">git연결하기</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 20px;">김도현</td>
+                        <td style="padding: 6px 20px; text-align:center;">kimdohyun222@naver.com</td>
+                        <td style="padding: 6px 20px;">
+                            <a href="https://github.com/starfish99600" style="color: white; text-decoration: none;">git연결하기</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 20px;">정종혁</td>
+                        <td style="padding: 6px 20px; text-align:center;">devna0111@gmail.com</td>
+                        <td style="padding: 6px 20px;">
+                            <a href="https://github.com/devna0111" style="color: white; text-decoration: none;">git연결하기</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 20px;">장슬찬</td>
+                        <td style="padding: 6px 20px; text-align:center;">jsc980115@naver.com</td>
+                        <td style="padding: 6px 20px;">
+                            <a href="https://github.com/jangseulchan" style="color: white; text-decoration: none;">git연결하기</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 20px;">박선우</td>
+                        <td style="padding: 6px 20px; text-align:center;">du5968@daum.net</td>
+                        <td style="padding: 6px 20px;">
+                            <a href="https://github.com/gulbiworker" style="color: white; text-decoration: none;">git연결하기</a>
+                        </td>
+                    </tr>
+                </table><br>
+
                 <div style="margin-top: 1rem;">
                     {% if not user.is_authenticated %}
                         <a href="{% url 'signup' %}" class="cta-button" style="margin-right: 1rem;">무료 체험하기</a>
@@ -887,8 +935,39 @@
                 animateCounters();
                 statsObserver.unobserve(statsSection);
             }
-        });
+        });        
         statsObserver.observe(statsSection);
+
+        // 드롭다운 메뉴 제어
+        const indexDropdownBtn = document.getElementById('indexDropdownBtn');
+        const indexDropdownContent = document.getElementById('indexDropdownContent');
+
+        if (indexDropdownBtn && indexDropdownContent) {
+            // 드롭다운 버튼 클릭 시 메뉴 토글
+            indexDropdownBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                indexDropdownContent.classList.toggle('show');
+            });
+
+            // 문서 클릭 시 드롭다운 메뉴 닫기
+            document.addEventListener('click', function(e) {
+                if (!indexDropdownBtn.contains(e.target) && !indexDropdownContent.contains(e.target)) {
+                    indexDropdownContent.classList.remove('show');
+                }
+            });
+
+            // 드롭다운 메뉴 항목 클릭 시 메뉴 닫기 (관리자 링크는 새 탭에서 열기)
+            indexDropdownContent.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    if (e.target.textContent.includes('관리자')) {
+                        e.preventDefault();
+                        window.open(e.target.href, '_blank');
+                    }
+                    indexDropdownContent.classList.remove('show');
+                }
+            });
+        }
     </script>
 </body>
 </html>

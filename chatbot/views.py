@@ -5,7 +5,6 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.middleware.csrf import get_token
 import os, json, uuid
 from django.conf import settings
 from langchain_ollama import ChatOllama
@@ -38,10 +37,17 @@ def save_buffer_memory_to_session(session, memory):
     session.modified = True
 
 def home(request):
-    return render(request, "index.html")
+    context = {
+        'user': request.user,
+    }
+    return render(request, "index.html", context)
 
+@login_required
 def chat_page(request):
-    return render(request, "chatbot/chat.html")
+    context = {
+        'user': request.user,
+    }
+    return render(request, "chatbot/chat.html", context)
 
 @csrf_exempt
 def upload_file(request):
@@ -244,10 +250,7 @@ def user_login(request):
         messages.error(request, '잘못된 사용자명 또는 비밀번호입니다.')
     
     # GET 요청이거나 로그인 실패시
-    context = {
-        'csrf_token': get_token(request)
-    }
-    return render(request, 'registration/login.html', context)
+    return render(request, 'registration/login.html')
 
 def signup(request):
     """사용자 회원가입"""
@@ -265,10 +268,7 @@ def signup(request):
         messages.error(request, '회원가입 중 오류가 발생했습니다.')
     
     # GET 요청이거나 회원가입 실패시
-    context = {
-        'csrf_token': get_token(request)
-    }
-    return render(request, 'registration/signup.html', context)
+    return render(request, 'registration/signup.html')
 
 def user_logout(request):
     """사용자 로그아웃"""
