@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - FlowMate AI</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 3rem;
+            width: 100%;
+            max-width: 450px;
+            margin: 2rem;
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .signup-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .auth-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .back-to-home {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-to-home:hover {
+            color: #ffd700;
+        }
+
+        .text-danger {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .features-preview {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 30%, #4facfe 70%, #00f2fe 100%);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            color: white;
+            text-align: center;
+        }
+
+        .features-preview h4 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .features-list {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .feature-item {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .password-requirements {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .password-requirements ul {
+            margin: 0.5rem 0 0 0;
+            padding-left: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-to-home">← 홈으로 돌아가기</a>
+    
+    <div class="auth-container">
+        <div class="logo">FlowMate AI</div>
+        <div class="signup-subtitle">로컬 AI 솔루션으로 업무 효율성을 높여보세요</div>
+        
+        <div class="features-preview">
+            <h4>가입 후 이용 가능한 기능</h4><br>
+            <div class="features-list">
+                <div class="feature-item">AI 채팅</div>
+                <div class="feature-item">문서 분석</div>
+                <div class="feature-item">발표 피드백</div>
+            </div>
+        </div>
+
+        <form method="post" action="/signup/">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            
+            <div class="form-group">
+                <label for="id_username" class="form-label">사용자 ID</label>
+                <input type="text" name="username" class="form-control" id="id_username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="id_password1" class="form-label">비밀번호</label>
+                <input type="password" name="password1" class="form-control" id="id_password1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="id_password2" class="form-label">비밀번호 확인</label>
+                <input type="password" name="password2" class="form-control" id="id_password2" required>
+            </div>
+
+            <div class="password-requirements">
+                <strong>비밀번호 요구사항:</strong>
+                <ul>
+                    <li>8자 이상으로 설정해주세요</li>
+                    <li>너무 일반적인 비밀번호는 사용할 수 없습니다</li>
+                    <li>개인 정보와 유사하면 안됩니다</li>
+                    <li>숫자로만 구성할 수 없습니다</li>
+                </ul>
+            </div>
+
+            <button type="submit" class="btn-primary">회원가입 완료</button>
+        </form>
+
+        <div class="auth-links">
+            <p>이미 계정이 있으신가요? <a href="/login/">로그인</a></p>
+        </div>
+    </div>
+
+    <script>
+        // 실시간 비밀번호 확인
+        const password1 = document.querySelector('#id_password1');
+        const password2 = document.querySelector('#id_password2');
+        
+        function checkPasswordMatch() {
+            if (password2.value && password1.value !== password2.value) {
+                password2.style.borderColor = '#dc3545';
+            } else {
+                password2.style.borderColor = '#e1e5e9';
+            }
+        }
+        
+        if (password1 && password2) {
+            password2.addEventListener('input', checkPasswordMatch);
+            password1.addEventListener('input', checkPasswordMatch);
+        }
+    </script>
+</body>
+</html>

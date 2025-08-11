@@ -1,6 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.middleware.csrf import get_token
 import os, json, uuid
 from django.conf import settings
 from langchain_ollama import ChatOllama
@@ -33,7 +38,7 @@ def save_buffer_memory_to_session(session, memory):
     session.modified = True
 
 def home(request):
-    return render(request, "home.html")
+    return render(request, "index.html")
 
 def chat_page(request):
     return render(request, "chatbot/chat.html")
@@ -219,3 +224,54 @@ def clear_history(request):
         del request.session["chat_history"]
         request.session.modified = True
     return JsonResponse({"cleared": True})
+
+# 인증 관련 뷰들
+def user_login(request):
+    """사용자 로그인"""
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, f'{username}님, 환영합니다!')
+                return redirect('home')
+        messages.error(request, '잘못된 사용자명 또는 비밀번호입니다.')
+    
+    # GET 요청이거나 로그인 실패시
+    context = {
+        'csrf_token': get_token(request)
+    }
+    return render(request, 'registration/login.html', context)
+
+def signup(request):
+    """사용자 회원가입"""
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'{username}님, 회원가입이 완료되었습니다!')
+            login(request, user)
+            return redirect('home')
+        messages.error(request, '회원가입 중 오류가 발생했습니다.')
+    
+    # GET 요청이거나 회원가입 실패시
+    context = {
+        'csrf_token': get_token(request)
+    }
+    return render(request, 'registration/signup.html', context)
+
+def user_logout(request):
+    """사용자 로그아웃"""
+    logout(request)
+    messages.info(request, '로그아웃되었습니다.')
+    return redirect('home')

@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import chat_page, upload_file, ask_question, list_uploaded_files, home, download_report, list_generated_files,clear_history
+from .views import chat_page, upload_file, ask_question, list_uploaded_files, home, download_report, list_generated_files, clear_history, user_login, signup, user_logout
 
 
 urlpatterns = [
@@ -12,4 +12,9 @@ urlpatterns = [
     path("presentation/", include('presentation.urls')),
     path("download_report/", download_report, name="download_report"),
     path("clear_history/", clear_history, name="clear_history"),
+    
+    # 인증 관련 URL
+    path("login/", user_login, name="user_login"),
+    path("signup/", signup, name="signup"),
+    path("logout/", user_logout, name="user_logout"),
 ]
