@@ -198,13 +198,16 @@ def smart_determine_params(query: str):
 def create_enhanced_prompt(query: str, combined_text: str, history: str, task_type: str):
     """향상된 프롬프트 생성"""
     
-    base_context = f"""다음은 사용자와의 대화 기록입니다:
+    base_context = f"""
+    당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 친절히 답변해주세요.
+    
+    다음은 사용자와의 대화 기록입니다:
 {history}
 
-참고할 문서 내용:
+[참고할 문서 내용]
 {combined_text}
 
-사용자 질문: {query}
+[사용자 질문] {query}
 """
 
     if task_type == "복합분석":
