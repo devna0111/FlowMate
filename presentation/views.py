@@ -3,9 +3,11 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from utils.run_feedback_pipeline import run_feedback_pipeline
+from django.contrib.auth.decorators import login_required
 import traceback
 import os
 
+@login_required
 def presentation(request):
     return render(request, 'presentation/analysis.html')
 

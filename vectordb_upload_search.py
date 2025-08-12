@@ -177,30 +177,31 @@ def smart_determine_params(query: str):
     
     # 복잡한 작업 (더 많은 토큰과 문서 필요)
     if any(keyword in query for keyword in ['보고서', '발표', 'ppt', '분석', '비교', '평가']):
-        return 1000, 4096, "복합분석"
+        return 100, 4096, "복합분석"
     
     # 퀴즈/문제 (적당한 양의 문서, 구조화된 답변)
     elif any(keyword in query for keyword in ['퀴즈']):
-        return 1000, 2048, "퀴즈"
+        return 100, 2048, "퀴즈"
     
     # 요약 (전체적인 이해 필요)
     elif any(keyword in query for keyword in ['요약', '정리', '핵심', '간추']):
-        return 1000, 1024, "요약"
+        return 100, 1024, "요약"
     
     # 구체적 질문 (관련성 높은 문서 필요)
     elif any(keyword in query for keyword in ['어떻게', '왜', '무엇', '언제', '어디서', '누가']):
-        return 1000, 2048, "구체적질문"
+        return 100, 2048, "구체적질문"
     
     # 일반 질문
     else:
-        return 100, 512, "일반"
+        return 10, 512, "일반"
 
 def create_enhanced_prompt(query: str, combined_text: str, history: str, task_type: str):
     """향상된 프롬프트 생성"""
     
     base_context = f"""
-    당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 친절히 답변해주세요.
-    
+    당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로 친절히 답변해주세요.
+    자기소개 요청이 있다면 Flow팀에서 만든 FlowMate라고 답변하세요!
+    당신은 요약, 보고서 작성, 발표자료 작성에 특화되어있습니다.
     다음은 사용자와의 대화 기록입니다:
 {history}
 

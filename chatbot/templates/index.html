@@ -553,7 +553,7 @@
                 <li><a href="#architecture">아키텍처</a></li>
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'chat_page' %}">채팅</a></li>
-                    <li><a href="/presentation/">분석</a></li>
+                    <li><a href="/presentation/">발표분석</a></li>
                     <li class="dropdown">
                         <a href="#" class="dropbtn" id="indexDropdownBtn">{{ user.username }} ▼</a>
                         <div class="dropdown-content" id="indexDropdownContent">
@@ -712,27 +712,54 @@
         <div class="container">
             <h2 class="section-title">시스템 아키텍처</h2>
             <div class="architecture-diagram">
-                <h3 style="text-align: center; margin-bottom: 2rem;">로컬 AI 파이프라인</h3>
+                <h3 style="text-align: center; margin-bottom: 2rem;">Chatbot 파이프라인</h3>
                 <div class="architecture-flow">
                     <div class="arch-box">
-                        <strong>문서 입력</strong><br>
-                        <small>PDF, DOCX, TXT</small>
+                        <strong>문서 입력 및 파싱</strong><br>
+                        <small>각종 문서 및 내부 img :</small><br>
+                        <small>vlm 기반 분석</small>
                     </div>
                     <div class="arch-box">
-                        <strong>BGE-M3</strong><br>
-                        <small>의미 임베딩</small>
+                        <strong>Embedding</strong><br>
+                        <small>bge-m3</small>
                     </div>
                     <div class="arch-box">
                         <strong>벡터 DB</strong><br>
-                        <small>QDRANT LOCAL DB(SERVER)</small>
+                        <small>QDRANT LOCAL DB[SERVER]</small>
                     </div>
                     <div class="arch-box">
                         <strong>qwen2.5:7b</strong><br>
-                        <small>생성형 AI(VLM 최적)</small>
+                        <small>생성형 AI</small>
                     </div>
                     <div class="arch-box">
                         <strong>결과 출력</strong><br>
-                        <small>요약/피드백</small>
+                        <small>요약/보고서/발표자료/퀴즈</small>
+                    </div>
+                </div>
+            </div>
+            <div class="architecture-diagram">
+                <h3 style="text-align: center; margin-bottom: 2rem;">영상 분석 파이프라인</h3>
+                <div class="architecture-flow">
+                    <div class="arch-box">
+                        <strong>영상 입력</strong><br>
+                        <small>mp4, avi, mpeg</small>
+                    </div>
+                    <div class="arch-box">
+                        <strong>오디오/비디오 분리</strong><br>
+                        <small>리사이징</small>
+                    </div>
+                    <div class="arch-box">
+                        <strong>오디오분석</strong><br>
+                        <small>faster-whisper</small>
+                        <small>librosa</small>
+                    </div>
+                    <div class="arch-box">
+                        <strong>비디오분석</strong><br>
+                        <small>MediaPipe</small>
+                    </div>
+                    <div class="arch-box">
+                        <strong>결과 출력</strong><br>
+                        <small>피드백[개선사항,단점]</small>
                     </div>
                 </div>
             </div>

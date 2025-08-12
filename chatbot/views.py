@@ -8,8 +8,8 @@ from django.contrib import messages
 import os, json, uuid
 from django.conf import settings
 from langchain_ollama import ChatOllama
-from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+# from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
+# from langchain_core.output_parsers import StrOutputParser
 from vectordb_upload_search import data_to_vectorstore, question_answer_with_memory, BufferMemory
 from utils.docx_writer import markdown_to_styled_docx
 from utils.pptx_writer import save_structured_text_to_pptx
