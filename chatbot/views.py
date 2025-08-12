@@ -8,11 +8,12 @@ from django.contrib import messages
 import os, json, uuid
 from django.conf import settings
 from langchain_ollama import ChatOllama
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from vectordb_upload_search import data_to_vectorstore, question_answer_with_memory, BufferMemory
 from utils.docx_writer import markdown_to_styled_docx
 from utils.pptx_writer import save_structured_text_to_pptx
+from utils.intent_classifier import check_intent, normalize_label
 
 # 업로드/생성 파일 폴더 경로 분리
 TEMP_DIR = os.path.join(settings.BASE_DIR, "temp")
@@ -72,17 +73,8 @@ def upload_file(request):
 @csrf_exempt
 def ask_question(request):
     """보고서/발표자료 등 생성 파일은 uploads/ 폴더에 저장"""
-    # llm = ChatOllama(model='qwen2.5:7b-instruct')
-    # check_intent = ChatPromptTemplate.from_template(f"""
-    #                                                 사용자의 요청을 보고, 해당 질문이
-    #                                                 - 보고서 작성을 요청한다면 [보고서]를 붙인 사용자 요청을 반환
-    #                                                 - 요약을 요청하면 [요약]을 붙인 사용자 요청을 반환
-    #                                                 - 발표 자료를 요청하는 거라면 [발표]를 붙인 사용자 요청을 반환
-    #                                                 하도록 쿼리를 추출해줘.
-                                                    
-    #                                                 이외에는 전부 [일반]을 붙인 사용자 요청으로 반환해줘.
-    #                                                 """)
-    # first_chain = check_intent | llm | StrOutputParser()
+    llm = ChatOllama(model='qwen2.5:7b-instruct')
+    
     if request.method == "POST":
         # 세션 미생성 시 강제 생성
         if not request.session.session_key:
@@ -95,13 +87,16 @@ def ask_question(request):
         # 세션에서 BufferMemory 불러오기
         memory = get_buffer_memory_from_session(request.session)
 
-        report_keywords = ['보고서', '보고서 작성', '보고서 초안', '보고서 생성']
-        pptx_keywords = ['발표문', '발표 자료', '발표자료', '발표 초안', '발표 자료 초안']
-        summary_keywords = ['요약해줘', '요약본', '3줄요약', '요약문', '핵심만',"정리해줘",'간추려줘']
+        # report_keywords = ['보고서', '보고서 작성', '보고서 초안', '보고서 생성']
+        # pptx_keywords = ['발표문', '발표 자료', '발표자료', '발표 초안', '발표 자료 초안']
+        # summary_keywords = ['요약해줘', '요약본', '3줄요약', '요약문', '핵심만',"정리해줘",'간추려줘']
         
-        # query = first_chain.invoke({"question":query})
-        if any(k in query for k in report_keywords):
-        # if "[보고서]" in query :
+        check_intents = check_intent(query)
+        result = llm.invoke(check_intents.format_messages(query=query))
+        intent = normalize_label(result.content)
+        print(intent)
+        # if any(k in query for k in report_keywords):
+        if "[보고서]" in intent :
             prompt = (
                 '당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로 친절히 답변해주세요.\n'
                 "아래 문서 내용을 기반으로 다음 조건을 만족하는 보고서를 마크다운(Markdown) 형식으로 작성해줘.\n"
@@ -128,8 +123,8 @@ def ask_question(request):
                 "report_file_url": f"/download_report/?filename={docx_name}"
             })
 
-        elif any(k in query for k in pptx_keywords):
-        # elif "[발표]" in query :
+        # elif any(k in query for k in pptx_keywords):
+        elif "[발표]" in intent :
             prompt = f"""
                     [user] {query}
                     [system]
@@ -170,8 +165,8 @@ def ask_question(request):
                 "report_file_url": f"/download_report/?filename={pptx_name}"
             })
             
-        elif any(k in query for k in summary_keywords):
-        # elif "[요약]" in query :
+        # elif any(k in query for k in summary_keywords):
+        elif "[요약]" in intent :
             prompt = f"""
                     [system]
                     당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로 친절히 답변해주세요.
