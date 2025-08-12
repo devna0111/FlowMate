@@ -173,7 +173,7 @@ def data_to_vectorstore(file_path: str):
 
 def smart_determine_params(query: str):
     """개선된 파라미터 결정 - 답변 품질 고려"""
-    query_lower = query.lower()
+
     
     # 복잡한 작업 (더 많은 토큰과 문서 필요)
     if any(keyword in query for keyword in ['보고서', '발표', 'ppt', '분석', '비교', '평가']):
@@ -199,9 +199,10 @@ def create_enhanced_prompt(query: str, combined_text: str, history: str, task_ty
     """향상된 프롬프트 생성"""
     
     base_context = f"""
-    당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로 친절히 답변해주세요.
+    당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로만 친절히 답변해주세요.
     자기소개 요청이 있다면 Flow팀에서 만든 FlowMate라고 답변하세요!
     당신은 요약, 보고서 작성, 발표자료 작성에 특화되어있습니다.
+    한국어로 답변하세요!
     다음은 사용자와의 대화 기록입니다:
 {history}
 
@@ -270,6 +271,7 @@ def create_enhanced_prompt(query: str, combined_text: str, history: str, task_ty
 - 추가적인 맥락이나 배경 정보도 제공하세요
 - 문서 범위를 벗어나는 추측은 피하세요
 - 답변은 너무 길지 않게 해주세요
+- 반복되는 말은 하지 마세요
 
 답변:"""
 

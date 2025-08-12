@@ -28,13 +28,14 @@ def generate_feedback(summary: str, audio_features: dict, visual_features: dict)
 7. 분석 결과값이 0에 가까우면 ‘영상 품질 문제’ 안내 문구를 반드시 포함해줘.
 
 아래 예시와 같이 상세하게 작성해줘.
+**반드시 한국어(Korean)로 답변해야해**
 [예시]
 - 장점1: ~ / 구체적 칭찬 + 근거
 - 개선점1: ~ / 구체적 개선 방법 + 연습 팁
 ...
 - [한 문장 조언] ~
 
-(꼭 2,000자 이상으로 작성해줘)
+(꼭 2,000자 이상으로 작성해줘, **반드시 한국어(Korean)로 답변해야해**)
 """)
     llm = ChatOllama(model="qwen2.5:7b-instruct")  # 적절한 모델로 교체 가능
     chain = prompt_template | llm
