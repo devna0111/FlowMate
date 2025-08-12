@@ -66,6 +66,46 @@
             border-color: #ffd700 !important;
         }
 
+        /* 드롭다운 스타일 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            z-index: 1;
+            top: 100%;
+            margin-top: 5px;
+        }
+
+        .dropdown-content a {
+            color: #333 !important;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+            border-radius: 8px;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropbtn {
+            cursor: pointer;
+        }
+
         .container {
             flex: 1;
             max-width: 1200px;
@@ -417,6 +457,13 @@
             <a href="/" class="nav-btn">홈</a>
             <a href="/chat_page/" class="nav-btn">채팅</a>
             <a href="#" class="nav-btn" style="background: #f0f0f0;">발표분석</a>
+            <div class="dropdown">
+                <a href="#" class="nav-btn dropbtn" id="dropdownBtn">devna0111 ▼</a>
+                <div class="dropdown-content" id="dropdownContent">
+                    <a href="/admin/">관리자</a>
+                    <a href="/logout/">로그아웃</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -654,6 +701,37 @@
                 console.error(err);
             });
         });
+
+        // 드롭다운 메뉴 제어
+        const dropdownBtn = document.getElementById('dropdownBtn');
+        const dropdownContent = document.getElementById('dropdownContent');
+
+        if (dropdownBtn && dropdownContent) {
+            // 드롭다운 버튼 클릭 시 메뉴 토글
+            dropdownBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropdownContent.classList.toggle('show');
+            });
+
+            // 문서 클릭 시 드롭다운 메뉴 닫기
+            document.addEventListener('click', function(e) {
+                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                    dropdownContent.classList.remove('show');
+                }
+            });
+
+            // 드롭다운 메뉴 항목 클릭 시 메뉴 닫기 (관리자 링크는 새 탭에서 열기)
+            dropdownContent.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    if (e.target.textContent.includes('관리자')) {
+                        e.preventDefault();
+                        window.open(e.target.href, '_blank');
+                    }
+                    dropdownContent.classList.remove('show');
+                }
+            });
+        }
     </script>
 
     <!-- Footer -->

@@ -249,6 +249,35 @@
         .file-item.selected {
             background: #e6f7ff;
             font-weight: 500;
+            position: relative;
+        }
+
+        .file-item .file-name {
+            flex: 1;
+            margin-right: 8px;
+        }
+
+        .file-item .unselect-btn {  /* 선택 취소 버튼 */
+            background: #ff4757;
+            color: white;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .file-item.selected .unselect-btn {
+            display: flex;
+        }
+
+        .file-item .unselect-btn:hover {
+            background: #ff3742;
         }
 
         .file-item:last-child {
@@ -794,15 +823,41 @@
                 data.files.forEach(file => {
                     const div = document.createElement('div');
                     div.className = 'file-item';
-                    div.textContent = file;
-                    div.onclick = () => {
-                        // 파일 선택
+                    
+                    const fileName = document.createElement('span');
+                    fileName.className = 'file-name';
+                    fileName.textContent = file;
+                    
+                    const unselectBtn = document.createElement('button');
+                    unselectBtn.className = 'unselect-btn';
+                    unselectBtn.innerHTML = '&times;';
+                    unselectBtn.title = '선택 취소';
+                    
+                    div.appendChild(fileName);
+                    div.appendChild(unselectBtn);
+                    
+                    // 파일 선택 이벤트
+                    fileName.onclick = () => {
+                        // 모든 파일 선택 해제
                         Array.from(uploadedFileList.children).forEach(c => c.classList.remove('selected'));
+                        // 현재 파일 선택
                         div.classList.add('selected');
                         currentFilePath = 'temp/' + file;
                     };
-                    // 첫 파일 선택 유지
-                    if ('temp/' + file === currentFilePath) div.classList.add('selected');
+                    
+                    // 선택 취소 이벤트
+                    unselectBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        div.classList.remove('selected');
+                        // 기본 파일로 되돌리기 (예: sample.txt)
+                        currentFilePath = "sample.txt";
+                    };
+                    
+                    // 초기 선택 상태 설정
+                    if ('temp/' + file === currentFilePath) {
+                        div.classList.add('selected');
+                    }
+                    
                     uploadedFileList.appendChild(div);
                 });
             } catch (error) {
@@ -1000,16 +1055,27 @@
 
                         // 리셋 안내 메시지 표시
                         const resetNotice = document.createElement('div');
-                        resetNotice.className = 'bubble system'; // 스타일용 클래스
-                        resetNotice.textContent = '이제 새로운 대화를 시작하세요!';
+                        resetNotice.className = 'message bot';
+                        
+                        const avatar = document.createElement('div');
+                        avatar.className = 'message-avatar';
+                        avatar.textContent = '●';
+                        
+                        const messageContent = document.createElement('div');
+                        messageContent.className = 'message-content';
+                        messageContent.textContent = '이제 새로운 대화를 시작하세요!';
+                        
+                        resetNotice.appendChild(avatar);
+                        resetNotice.appendChild(messageContent);
                         document.getElementById('chatArea').appendChild(resetNotice);
 
-                        // 추가로, alert창도 띄우고 싶으면 아래 주석 해제
-                        alert('이제 새로운 대화를 시작하세요!');
+                        // 모든 파일 선택 취소
                         Array.from(uploadedFileList.children).forEach(c => c.classList.remove('selected'));
 
-                        // (3) 선택 파일을 기본값으로 되돌리기 (예: sample.txt)
-                        currentFilePath = currentFilePath ; 
+                        // 기본 파일로 되돌리기
+                        currentFilePath = "sample.txt";
+                        
+                        alert('이제 새로운 대화를 시작하세요!');
                     }
                 });
         });
