@@ -457,13 +457,18 @@
             <a href="/" class="nav-btn">홈</a>
             <a href="/chat_page/" class="nav-btn">채팅</a>
             <a href="#" class="nav-btn" style="background: #f0f0f0;">발표분석</a>
-            <div class="dropdown">
-                <a href="#" class="nav-btn dropbtn" id="dropdownBtn">devna0111 ▼</a>
-                <div class="dropdown-content" id="dropdownContent">
-                    <a href="/admin/">관리자</a>
-                    <a href="/logout/">로그아웃</a>
+            {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <a href="#" class="nav-btn dropbtn" id="dropdownBtn">{{ user.username }} ▼</a>
+                    <div class="dropdown-content" id="dropdownContent">
+                        <a href="/admin/">관리자</a>
+                        <a href="{% url 'user_logout' %}">로그아웃</a>
+                    </div>
                 </div>
-            </div>
+            {% else %}
+                <a href="{% url 'user_login' %}" class="nav-btn">로그인</a>
+                <a href="{% url 'signup' %}" class="nav-btn">회원가입</a>
+            {% endif %}
         </div>
     </div>
 
