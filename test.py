@@ -16,3 +16,6 @@
 # import tensorflow as tf
 # print("현재 GPU 감지:", tf.config.list_physical_devices('GPU'))
 
+import sklearn as skl
+
+print(skl.__version__)
