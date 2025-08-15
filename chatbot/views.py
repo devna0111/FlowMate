@@ -14,6 +14,7 @@ from vectordb_upload_search import data_to_vectorstore, question_answer_with_mem
 from utils.docx_writer import markdown_to_styled_docx
 from utils.pptx_writer import save_structured_text_to_pptx
 from utils.intent_classifier import check_intent, normalize_label
+from utils.eval_hr import hr_predict
 
 # 업로드/생성 파일 폴더 경로 분리
 TEMP_DIR = os.path.join(settings.BASE_DIR, "temp")
@@ -275,3 +276,57 @@ def user_logout(request):
     logout(request)
     messages.info(request, '로그아웃되었습니다.')
     return redirect('home')
+
+@login_required
+def hr_evaluation_page(request):
+    """HR 업무평가 예측 페이지"""
+    return render(request, 'chatbot/hr_evaluation.html')
+
+@csrf_exempt
+@login_required
+def hr_evaluation_predict(request):
+    """HR 업무평가 예측 API"""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            
+            # 입력 데이터 추출
+            age = int(data.get('age'))
+            project = int(data.get('project'))
+            salary = int(data.get('salary'))
+            number_of_turnovers = int(data.get('number_of_turnovers'))
+            surround_eval = int(data.get('surround_eval'))
+            personal_history = int(data.get('personal_history'))
+            edu_trips_lastyear = int(data.get('edu_trips_lastyear'))
+            currentyear_at_company = int(data.get('currentyear_at_company'))
+            buisnesstrip = int(data.get('buisnesstrip'))
+            when_enroll = int(data.get('when_enroll'))
+            
+            # HR 평가 예측 수행
+            result = hr_predict(
+                age=age,
+                project=project,
+                salary=salary,
+                number_of_turnovers=number_of_turnovers,
+                surround_eval=surround_eval,
+                personal_history=personal_history,
+                edu_trips_lastyear=edu_trips_lastyear,
+                currentyear_at_company=currentyear_at_company,
+                buisnesstrip=buisnesstrip,
+                when_enroll=when_enroll
+            )
+            
+            return JsonResponse({
+                "success": True,
+                "result": result,
+                "message": f"예측 결과: {result}"
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                "success": False,
+                "error": str(e),
+                "message": "예측 중 오류가 발생했습니다."
+            })
+    
+    return JsonResponse({"error": "POST 요청만 지원합니다."}, status=405)

@@ -5,9 +5,13 @@ def hr_predict(age, project, salary, number_of_turnovers, surround_eval, persona
     를 입력받아 pretrained_RandomForestClassifier 결과값을 반환하는 함수
     '''
     import joblib
+    import os
+    from django.conf import settings
+    
     # 필요 model, scaler import
-    model = joblib.load("rf_model_precision1.joblib")
-    scaler = joblib.load("rf_model_precision1_scaler.joblib")
+    base_dir = getattr(settings, 'BASE_DIR', os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    model = joblib.load(os.path.join(base_dir, "rf_model_precision1.joblib"))
+    scaler = joblib.load(os.path.join(base_dir, "rf_model_precision1_scaler.joblib"))
     
     나이=age; 참여프로젝트=project; 월급=salary; 이직회수=number_of_turnovers; 주변평가=surround_eval;
     경력=personal_history; 전년도교육출장횟수=edu_trips_lastyear; 현회사근속년수=currentyear_at_company

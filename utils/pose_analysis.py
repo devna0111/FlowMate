@@ -1,34 +1,23 @@
 import cv2
-import mediapipe as mp
+import numpy as np
+import os
 
 def analyze_visual_features(video_path: str, frame_skip: int = 5, resize_dim=(640, 360)) -> dict:
     cap = cv2.VideoCapture(video_path)
 
-    # GPU 최적화 옵션 활성화 및 초기화 옵션 최적화
-    mp_face = mp.solutions.face_mesh.FaceMesh(
-        static_image_mode=False,
-        max_num_faces=1,
-        refine_landmarks=False,
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5)
+    # OpenCV 얼굴 검출기 초기화 (Haar Cascade)
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     
-    mp_pose = mp.solutions.pose.Pose(
-        static_image_mode=False,
-        model_complexity=0,
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5)
-    
-    mp_hands = mp.solutions.hands.Hands(
-        static_image_mode=False,
-        max_num_hands=2,
-        model_complexity=0,
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5)
+    # 몸체 검출기 (상체 검출용)
+    body_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_upperbody.xml')
 
     frame_count = 0
     analyzed_frames = 0
     face_detected = 0
     gesture_detected = 0
+    
+    # 움직임 감지를 위한 이전 프레임 저장
+    prev_gray = None
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -43,29 +32,38 @@ def analyze_visual_features(video_path: str, frame_skip: int = 5, resize_dim=(64
 
         # 해상도 축소
         frame_resized = cv2.resize(frame, resize_dim)
+        
+        # 그레이스케일 변환
+        gray = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2GRAY)
 
-        # RGB 변환
-        frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
-
-        # Mediapipe 분석 수행
-        face_result = mp_face.process(frame_rgb)
-        pose_result = mp_pose.process(frame_rgb)
-        hands_result = mp_hands.process(frame_rgb)
-
-        # 얼굴이 인식된 프레임 수
-        if face_result.multi_face_landmarks:
+        # 얼굴 검출
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        if len(faces) > 0:
             face_detected += 1
 
-        # 자세 또는 손동작이 감지된 프레임 수
-        if pose_result.pose_landmarks or hands_result.multi_hand_landmarks:
+        # 상체/움직임 검출
+        bodies = body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(50, 50))
+        
+        # 추가로 움직임 감지 (제스처 대용)
+        motion_detected = False
+        if prev_gray is not None:
+            # 프레임 차이를 이용한 움직임 감지
+            diff = cv2.absdiff(prev_gray, gray)
+            _, thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)
+            motion_pixels = cv2.countNonZero(thresh)
+            
+            # 프레임 크기의 5% 이상 변화가 있으면 움직임으로 판단
+            if motion_pixels > (resize_dim[0] * resize_dim[1] * 0.05):
+                motion_detected = True
+        
+        # 몸체 검출 또는 유의미한 움직임이 있으면 제스처로 판단
+        if len(bodies) > 0 or motion_detected:
             gesture_detected += 1
 
+        prev_gray = gray.copy()
         analyzed_frames += 1
 
     cap.release()
-    mp_face.close()
-    mp_pose.close()
-    mp_hands.close()
 
     return {
         "total_frames": analyzed_frames,

@@ -177,7 +177,7 @@ def smart_determine_params(query: str):
     
     # 복잡한 작업 (더 많은 토큰과 문서 필요)
     if any(keyword in query for keyword in ['보고서', '발표', 'ppt', '분석', '비교', '평가']):
-        return 100, 4096, "복합분석"
+        return 100, 2048, "복합분석"
     
     # 퀴즈/문제 (적당한 양의 문서, 구조화된 답변)
     elif any(keyword in query for keyword in ['퀴즈']):

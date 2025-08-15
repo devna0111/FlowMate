@@ -1,0 +1,521 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사원 업무평가 예측 - FlowMate</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: #4a5568;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #f59e0b, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border: 2px solid transparent;
+            background: transparent;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #4a5568;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            color: #6366f1;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn[style*="background: #f0f0f0"] {
+            background: #6366f1 !important;
+            color: white !important;
+            border-color: #6366f1 !important;
+        }
+
+        /* 드롭다운 스타일 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            z-index: 1;
+            top: 100%;
+            margin-top: 5px;
+        }
+
+        .dropdown-content a {
+            color: #333 !important;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+            border-radius: 8px;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropbtn {
+            cursor: pointer;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            padding: 0.75rem;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .predict-btn {
+            background: linear-gradient(45deg, #f59e0b, #fbbf24);
+            color: #333;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+            width: 100%;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .predict-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .result-content {
+            text-align: center;
+            font-size: 1.2rem;
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .result-excellent {
+            background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+            border: 2px solid #4CAF50;
+            color: #2e7d32;
+        }
+
+        .result-good {
+            background: linear-gradient(135deg, #fff2e8 0%, #fff8f0 100%);
+            border: 2px solid #FF9800;
+            color: #f57c00;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .info-section {
+            background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+            border: 2px solid #b3e5fc;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-section h3 {
+            color: #6366f1;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-section h3:before {
+            content: "";
+            font-size: 20px;
+        }
+
+        .info-list {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .info-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo"><a href="{% url 'home' %}" style="text-decoration: none; color: inherit;">FlowMate HR</a></div>
+        <div class="nav-buttons">
+            <a href="{% url 'home' %}" class="nav-btn">홈</a>
+            <a href="{% url 'chat_page' %}" class="nav-btn">채팅</a>
+            <a href="/presentation/" class="nav-btn">발표분석</a>
+            <a href="#" class="nav-btn" style="background: #f0f0f0;">HR평가</a>
+            {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <a href="#" class="nav-btn dropbtn" id="dropdownBtn">{{ user.username }} ▼</a>
+                    <div class="dropdown-content" id="dropdownContent">
+                        <a href="/admin/">관리자</a>
+                        <a href="{% url 'user_logout' %}">로그아웃</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'user_login' %}" class="nav-btn">로그인</a>
+                <a href="{% url 'signup' %}" class="nav-btn">회원가입</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">사원 업무평가 예측</h1>
+            <p class="page-subtitle">AI 기반 머신러닝 모델로 사원의 업무 성과를 예측합니다</p>
+        </div>
+
+        <div class="main-layout">
+            <div class="form-container">
+                <h3 style="margin-bottom: 1.5rem; color: #333;">사원 정보 입력</h3>
+                <form id="hrForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="age">나이</label>
+                            <input type="number" id="age" name="age" required min="20" max="70" value="34">
+                        </div>
+                        <div class="form-group">
+                            <label for="project">참여 프로젝트 수</label>
+                            <input type="number" id="project" name="project" required min="0" max="50" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="salary">월급 (원)</label>
+                            <input type="number" id="salary" name="salary" required min="1000000" max="20000000" value="5838750">
+                        </div>
+                        <div class="form-group">
+                            <label for="number_of_turnovers">이직 횟수</label>
+                            <input type="number" id="number_of_turnovers" name="number_of_turnovers" required min="0" max="10" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="surround_eval">주변 평가 (1~4점)</label>
+                            <input type="number" id="surround_eval" name="surround_eval" required min="1" max="4" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="personal_history">경력 (년)</label>
+                            <input type="number" id="personal_history" name="personal_history" required min="1" max="50" value="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="edu_trips_lastyear">전년도 교육출장 횟수</label>
+                            <input type="number" id="edu_trips_lastyear" name="edu_trips_lastyear" required min="0" max="20" value="2">
+                        </div>
+                        <div class="form-group">
+                            <label for="currentyear_at_company">현 회사 근속년수</label>
+                            <input type="number" id="currentyear_at_company" name="currentyear_at_company" required min="1" max="50" value="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="buisnesstrip">출장 횟수</label>
+                            <input type="number" id="buisnesstrip" name="buisnesstrip" required min="0" max="100" value="2">
+                        </div>
+                        <div class="form-group">
+                            <label for="when_enroll">입사 나이</label>
+                            <input type="number" id="when_enroll" name="when_enroll" required min="18" max="65" value="29">
+                        </div>
+                    </div>
+                    <button type="submit" class="predict-btn" id="predictBtn">업무평가 예측하기</button>
+                </form>
+            </div>
+
+            <div class="info-section">
+                <h3>입력 정보 안내</h3>
+                <ul class="info-list">
+                    <li><strong>나이:</strong> 현재 나이 (예: 34)</li>
+                    <li><strong>참여 프로젝트 수:</strong> 지금까지 참여한 총 프로젝트 개수</li>
+                    <li><strong>월급:</strong> 현재 월급 (원 단위)</li>
+                    <li><strong>이직 횟수:</strong> 지금까지의 이직 경험 횟수</li>
+                    <li><strong>주변 평가:</strong> 동료들의 평가 (1~4점 척도)</li>
+                    <li><strong>경력:</strong> 총 근무 경력 (년)</li>
+                    <li><strong>전년도 교육출장 횟수:</strong> 작년 교육 출장 참여 횟수</li>
+                    <li><strong>현 회사 근속년수:</strong> 현재 회사에서 근무한 기간</li>
+                    <li><strong>출장 횟수:</strong> 일반 출장 참여 횟수</li>
+                    <li><strong>입사 나이:</strong> 현재 회사에 입사했을 때의 나이</li>
+                </ul>
+                
+                <div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #fff2e8 0%, #fff8f0 100%); border: 1px solid #f4d4a7; border-radius: 12px;">
+                    <h4 style="color: #f57c00; margin-bottom: 1rem;">예측 모델 정보</h4>
+                    <p style="color: #333; line-height: 1.6; margin-bottom: 0.5rem;">• <strong>모델:</strong> RandomForest Classifier</p>
+                    <p style="color: #333; line-height: 1.6; margin-bottom: 0.5rem;">• <strong>정확도:</strong> 약 85% (정밀도 기준)</p>
+                    <p style="color: #333; line-height: 1.6; margin-bottom: 0.5rem;">• <strong>예측 결과:</strong> "우수" 또는 "보통"</p>
+                    <p style="color: #333; line-height: 1.6;">• <strong>처리 시간:</strong> 실시간 즉시 예측</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <h3 class="result-title">예측 결과</h3>
+            <div class="result-content" id="resultContent">
+                <div class="loading">예측 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('hrForm');
+        const predictBtn = document.getElementById('predictBtn');
+        const resultSection = document.getElementById('resultSection');
+        const resultContent = document.getElementById('resultContent');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 버튼 비활성화 및 로딩 표시
+            predictBtn.disabled = true;
+            predictBtn.textContent = '예측 중...';
+            resultSection.classList.add('show');
+            resultContent.innerHTML = '<div class="loading">AI가 업무평가를 분석 중입니다...</div>';
+
+            // 폼 데이터 수집
+            const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = parseInt(value);
+            }
+
+            try {
+                const response = await fetch('/hr_evaluation/predict/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    let resultClass = '';
+                    let resultIcon = '';
+                    
+                    if (result.result === '우수') {
+                        resultClass = 'result-excellent';
+                        resultIcon = '';
+                    } else {
+                        resultClass = 'result-good';
+                        resultIcon = '';
+                    }
+
+                    resultContent.innerHTML = `
+                        <div class="${resultClass}">
+                            예측 결과: <strong>${result.result}</strong>
+                            <div style="margin-top: 1rem; font-size: 1rem; font-weight: normal;">
+                                ${result.result === '우수' ? 
+                                    '해당 사원은 우수한 업무 성과를 보일 것으로 예측됩니다!' : 
+                                    '해당 사원은 보통 수준의 업무 성과를 보일 것으로 예측됩니다.'
+                                }
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultContent.innerHTML = `
+                        <div style="color: #d32f2f; text-align: center;">
+                            예측 실패: ${result.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultContent.innerHTML = `
+                    <div style="color: #d32f2f; text-align: center;">
+                        오류가 발생했습니다: ${error.message}
+                    </div>
+                `;
+            }
+
+            // 버튼 활성화
+            predictBtn.disabled = false;
+            predictBtn.textContent = '업무평가 예측하기';
+        });
+
+        // 드롭다운 메뉴 제어
+        const dropdownBtn = document.getElementById('dropdownBtn');
+        const dropdownContent = document.getElementById('dropdownContent');
+
+        if (dropdownBtn && dropdownContent) {
+            dropdownBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropdownContent.classList.toggle('show');
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                    dropdownContent.classList.remove('show');
+                }
+            });
+
+            dropdownContent.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    if (e.target.textContent.includes('관리자')) {
+                        e.preventDefault();
+                        window.open(e.target.href, '_blank');
+                    }
+                    dropdownContent.classList.remove('show');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
