@@ -196,7 +196,8 @@
             margin-right: auto;
         }
 
-        .cta-button {
+        /* 통일된 버튼 스타일 */
+        .cta-button, .unified-btn {
             display: inline-block;
             background: linear-gradient(45deg, #f59e0b, #fbbf24);
             color: #333;
@@ -207,9 +208,12 @@
             font-size: 1.1rem;
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+            border: 2px solid transparent;
+            text-align: center;
+            min-width: 160px;
         }
 
-        .cta-button:hover {
+        .cta-button:hover, .unified-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(255,215,0,0.6);
         }
@@ -221,13 +225,13 @@
             flex-wrap: wrap;
         }
 
-        .cta-button.secondary {
+        .cta-button.secondary, .unified-btn.secondary {
             background: transparent;
             border: 2px solid #f59e0b;
             color: white;
         }
 
-        .cta-button.secondary:hover {
+        .cta-button.secondary:hover, .unified-btn.secondary:hover {
             background: #f59e0b;
             color: #333;
         }
@@ -238,8 +242,13 @@
                 align-items: center;
             }
             
-            .hero-buttons .cta-button {
+            .hero-buttons .cta-button, .hero-buttons .unified-btn {
                 width: 250px;
+            }
+            
+            .cta-button, .unified-btn {
+                font-size: 1rem;
+                padding: 12px 24px;
             }
         }
 
@@ -333,7 +342,7 @@
             box-shadow: 0 5px 15px rgba(255, 215, 0, 0.5);
         }
 
-        /* 플로팅 액션 버튼 */
+        /* 통일된 플로팅 액션 버튼 */
         .floating-actions {
             position: fixed;
             bottom: 30px;
@@ -345,46 +354,31 @@
         }
 
         .fab {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+            display: inline-block;
+            background: linear-gradient(45deg, #f59e0b, #fbbf24);
+            color: #333;
+            padding: 12px 20px;
             text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+            border: 2px solid transparent;
+            text-align: center;
+            min-width: 80px;
             position: relative;
             backdrop-filter: blur(10px);
         }
 
-        .fab-chat {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-        }
-
-        .fab-presentation {
-            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-            color: white;
-        }
-
-        .fab-hr {
-            background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
-            color: white;
-        }
-
         .fab:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255,215,0,0.6);
         }
 
         .fab-tooltip {
             position: absolute;
-            right: 70px;
+            right: 100px;
             top: 50%;
             transform: translateY(-50%);
             background: #333;
@@ -417,12 +411,17 @@
             .floating-actions {
                 bottom: 20px;
                 right: 20px;
+                gap: 10px;
             }
             
             .fab {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
+                padding: 10px 16px;
+                font-size: 0.8rem;
+                min-width: 70px;
+            }
+            
+            .fab-tooltip {
+                display: none;
             }
         }
 
@@ -762,8 +761,8 @@
                 {% if user.is_authenticated %}
                     <div class="hero-buttons">
                         <a href="{% url 'chat_page' %}" class="cta-button">AI 채팅 시작하기</a>
-                        <a href="/presentation/" class="cta-button secondary">발표 분석하기</a>
-                        <a href="{% url 'hr_evaluation_page' %}" class="cta-button secondary">HR 평가하기</a>
+                        <a href="/presentation/" class="cta-button">발표 분석하기</a>
+                        <a href="{% url 'hr_evaluation_page' %}" class="cta-button">HR 평가하기</a>
                     </div>
                 {% else %}
                     <a href="{% url 'signup' %}" class="cta-button">무료로 시작하기</a>
@@ -1034,13 +1033,14 @@
                     </tr>
                 </table><br>
 
-                <div style="margin-top: 1rem;">
+                <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
                     {% if not user.is_authenticated %}
-                        <a href="{% url 'signup' %}" class="cta-button" style="margin-right: 1rem;">무료 체험하기</a>
-                        <a href="{% url 'user_login' %}" class="cta-button" style="background: transparent; border: 2px solid #f59e0b;">로그인</a>
+                        <a href="{% url 'signup' %}" class="cta-button">무료 체험하기</a>
+                        <a href="{% url 'user_login' %}" class="cta-button secondary">로그인</a>
                     {% else %}
-                        <a href="{% url 'chat_page' %}" class="cta-button" style="margin-right: 1rem;">채팅 시작</a>
-                        <a href="/presentation/" class="cta-button" style="background: transparent; border: 2px solid #f59e0b;">분석 도구</a>
+                        <a href="{% url 'chat_page' %}" class="cta-button">AI 채팅</a>
+                        <a href="/presentation/" class="cta-button">발표 분석</a>
+                        <a href="{% url 'hr_evaluation_page' %}" class="cta-button">HR 평가</a>
                     {% endif %}
                 </div>
                 <p style="margin-top: 1rem; opacity: 0.8;">
@@ -1053,20 +1053,20 @@
         </div>
     </footer>
 
-    <!-- 플로팅 액션 버튼 -->
+    <!-- 통일된 플로팅 액션 버튼 -->
     {% if user.is_authenticated %}
     <div class="floating-actions">
-        <a href="{% url 'chat_page' %}" class="fab fab-chat">
-            <span class="fab-tooltip">AI 채팅</span>
-            AI
+        <a href="{% url 'chat_page' %}" class="fab">
+            <span class="fab-tooltip">AI 채팅 시작하기</span>
+            AI 채팅
         </a>
-        <a href="/presentation/" class="fab fab-presentation">
-            <span class="fab-tooltip">발표 분석</span>
-            PT
+        <a href="/presentation/" class="fab">
+            <span class="fab-tooltip">발표 분석하기</span>
+            발표 분석
         </a>
-        <a href="{% url 'hr_evaluation_page' %}" class="fab fab-hr">
-            <span class="fab-tooltip">HR 평가</span>
-            HR
+        <a href="{% url 'hr_evaluation_page' %}" class="fab">
+            <span class="fab-tooltip">HR 평가하기</span>
+            HR 평가
         </a>
     </div>
     {% endif %}

@@ -326,7 +326,9 @@ def create_presentation_from_text(text_content, output_path="output/presentation
             return None
         
         # LLM으로 슬라이드 구조 생성
-        structured_text = generate_slide_structure(text_content)
+        # structured_text = generate_slide_structure(text_content)
+        # 이미 views.py에서 실행함
+        structured_text = text_content
         if not structured_text:
             logger.error("슬라이드 구조 생성 실패")
             return None

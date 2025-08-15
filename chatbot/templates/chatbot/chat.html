@@ -497,50 +497,6 @@
             transform: scale(1.05);
         }
 
-        /* Footer */
-        footer {
-            background: #333;
-            color: white;
-            text-align: center;
-            padding: 3rem 0;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .footer-section h3 {
-            margin-bottom: 1rem;
-            color: #f59e0b;
-        }
-
-        .contact-info {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            padding: 2rem;
-            border-radius: 10px;
-            margin-top: 2rem;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(45deg, #f59e0b, #fbbf24);
-            color: #333;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255,215,0,0.6);
-        }
 
         @media (max-width: 768px) {
             .main-container {
@@ -555,7 +511,7 @@
         }
     </style>
 </head>
-<body>
+<body class="chat-page">
     <div class="header">
         <div class="logo"><a href="{% url 'home' %}" style="text-decoration: none; color: inherit;">FlowMate Chat</a></div>
         <div class="nav-buttons">
@@ -639,90 +595,7 @@
     </div>
 
     <!-- Footer -->
-    <footer id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>FlowMate AI</h3>
-                    <p>로컬 환경에서 안전하고 효율적인<br>AI 기반 업무 솔루션</p>
-                </div>
-                <div class="footer-section">
-                    <h3>핵심 기술</h3>
-                    <ul style="list-style: none; padding: 0;">
-                        <li>• Ollama qwen2.5:7b</li>
-                        <li>• BGE-M3 Embedding</li>
-                        <li>• Local Vector Database</li>
-                        <li>• On-premise Deployment(직접관리하는 서버, 컴퓨터(사내, 로컬)에 설치)</li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>주요 기능</h3>
-                    <ul style="list-style: none; padding: 0;">
-                        <li>• AI 채팅 어시스턴트</li>
-                        <li>• 문서 분석 & 요약</li>
-                        <li>• 프레젠테이션 피드백</li>
-                        <li>• 신입사원 교육 지원</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="contact-info">
-                <h3 style="text-align:center; color:white;">연락처 & 서비스</h3><br>
-                <table style="border-collapse: collapse; margin: 0 auto; text-align: left; color:white;">
-                    <tr>
-                        <td style="padding: 6px 20px;">고정현</td>
-                        <td style="padding: 6px 20px; text-align:center;">spellrain@naver.com</td>
-                        <td style="padding: 6px 20px;">
-                            <a href="https://github.com/k-j-hyun" style="color: white; text-decoration: none;">git연결하기</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 6px 20px;">김도현</td>
-                        <td style="padding: 6px 20px; text-align:center;">kimdohyun222@naver.com</td>
-                        <td style="padding: 6px 20px;">
-                            <a href="https://github.com/starfish99600" style="color: white; text-decoration: none;">git연결하기</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 6px 20px;">정종혁</td>
-                        <td style="padding: 6px 20px; text-align:center;">devna0111@gmail.com</td>
-                        <td style="padding: 6px 20px;">
-                            <a href="https://github.com/devna0111" style="color: white; text-decoration: none;">git연결하기</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 6px 20px;">장슬찬</td>
-                        <td style="padding: 6px 20px; text-align:center;">jsc980115@naver.com</td>
-                        <td style="padding: 6px 20px;">
-                            <a href="https://github.com/jangseulchan" style="color: white; text-decoration: none;">git연결하기</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 6px 20px;">박선우</td>
-                        <td style="padding: 6px 20px; text-align:center;">du5968@daum.net</td>
-                        <td style="padding: 6px 20px;">
-                            <a href="https://github.com/gulbiworker" style="color: white; text-decoration: none;">git연결하기</a>
-                        </td>
-                    </tr>
-                </table><br>
-
-                <div style="margin-top: 1rem;">
-                    {% if not user.is_authenticated %}
-                        <a href="{% url 'signup' %}" class="cta-button" style="margin-right: 1rem;">무료 체험하기</a>
-                        <a href="{% url 'user_login' %}" class="cta-button" style="background: transparent; border: 2px solid #f59e0b;">로그인</a>
-                    {% else %}
-                        <a href="{% url 'chat_page' %}" class="cta-button" style="margin-right: 1rem;">채팅 시작</a>
-                        <a href="/presentation/" class="cta-button" style="background: transparent; border: 2px solid #f59e0b;">분석 도구</a>
-                    {% endif %}
-                </div>
-                <p style="margin-top: 1rem; opacity: 0.8;">
-                    기업용 데모 및 상담 문의 환영합니다
-                </p>
-            </div>
-            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #555;">
-                <p>&copy; 2025 FlowMate AI Team. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    {% include 'footer.html' %}
 
     <script>
         const uploadZone = document.getElementById('uploadZone');

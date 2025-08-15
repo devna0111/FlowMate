@@ -8,13 +8,14 @@ from django.contrib import messages
 import os, json, uuid
 from django.conf import settings
 from langchain_ollama import ChatOllama
-# from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
-# from langchain_core.output_parsers import StrOutputParser
-from vectordb_upload_search import data_to_vectorstore, question_answer_with_memory, BufferMemory
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from vectordb_upload_search import data_to_vectorstore, question_answer_with_memory, BufferMemory, ensure_korean_only
 from utils.docx_writer import markdown_to_styled_docx
 from utils.pptx_writer import save_structured_text_to_pptx
 from utils.intent_classifier import check_intent, normalize_label
 from utils.eval_hr import hr_predict
+from langgraph_workflow import execute_workflow, TaskType
 
 # 업로드/생성 파일 폴더 경로 분리
 TEMP_DIR = os.path.join(settings.BASE_DIR, "temp")
@@ -23,6 +24,57 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 DEFAULT_FILE_PATH = os.path.join(TEMP_DIR, "sample.txt")
+
+def create_korean_only_prompt_template():
+    """한국어 강제 프롬프트 템플릿 생성"""
+    return ChatPromptTemplate.from_messages([
+        ("system", 
+        "[CRITICAL LANGUAGE INSTRUCTION]"
+        "반드시 한국어로만 답변하세요. 중국어, 영어, 일본어 등 다른 언어는 절대 사용 금지입니다. "
+        "ONLY Korean language allowed. Chinese/English/Japanese strictly forbidden. "
+        "只能用韩语回答，严禁使用中文或其他语言。 "
+        "입력 텍스트에서 한국어가 아닌 부분은 한국어로 번역하고, "
+        "원래 문서의 구조·양식(헤더/리스트/표 등)은 최대한 그대로 유지하여 반환하세요. "
+        "100% 한국어 출력만 허용됩니다."),
+        ("user", "{input}")
+    ])
+
+def create_report_prompt(query):
+    """보고서 생성 프롬프트"""
+    return (
+        '당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로만 친절히 답변해주세요.\n'
+        "아래 문서 내용을 기반으로 다음 조건을 만족하는 보고서를 마크다운(Markdown) 형식으로 작성해줘.\n"
+        "0. 반복되는 말을 하지 않는다.\n"
+        "1. 문서의 주제와 목적, 주요 내용, 결론, 권고사항을 명확히 포함할 것.\n"
+        "2. 목차, 표, 리스트, 강조문구 등은 문서 내용을 반영하여 구성할 것.\n"
+        "3. 과도한 추론이나 창작은 하지 말고, 문서에 없는 정보는 생성하지 마라.\n"
+        "4. 어떤 종류의 문서든 적절한 구조의 보고서 초안이 되도록 작성할 것.\n"
+        "5. 표지(제목), 목차, 본문(각 항목별 요약/분석/핵심 내용), 결론 및 권고사항 순으로 작성.\n"
+        "사용자 요청: " + query
+    )
+
+def create_presentation_prompt(query):
+    """발표자료 생성 프롬프트"""
+    return (
+        '당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로만 친절히 답변해주세요.\n'
+        "아래 문서내용을 바탕으로 실제 PPT 슬라이드를 만들기 위한 '슬라이드 구성 텍스트'를 한국어로만 작성해줘.\n"
+        "0. 반복되는 말을 하지 않는다.\n"
+        "1. 전체 내용을 5~10개 슬라이드로 논리적으로 나눈다.\n"
+        "2. 각 슬라이드는 반드시 아래와 같이 작성.\n"
+        """출력 형식:
+            [슬라이드 1]
+            제목: 프로젝트 소개
+            핵심 포인트:
+            - 첫 번째 포인트
+            - 두 번째 포인트"""
+        "3. 슬라이드 표지(제목/프로젝트 명)와 마지막 슬라이드(결론/요약/권고)는 꼭 포함.\n"
+        "4. 어떤 종류의 문서든 적절한 구조의 보고서 초안이 되도록 작성할 것.\n"
+        "5. 발표 흐름(도입 → 목적/배경 → 주요 내용/분석 → 결론/권고)에 따라 슬라이드를 구성.\n"
+        "6. 각 슬라이드의 '제목'과 '핵심 포인트'는 원문 내용에서 최대한 추출하고, 없는 내용은 상상/창작하지 말 것.\n"
+        "7. [슬라이드 N] ~ 형식만 반복.\n"
+        "8. 반복되는 말은 하지 마세요.\n"
+        "사용자 요청: " + query
+    )
 
 # BufferMemory와 세션 연동 헬퍼 함수 추가!
 def get_buffer_memory_from_session(session):
@@ -73,9 +125,7 @@ def upload_file(request):
 
 @csrf_exempt
 def ask_question(request):
-    """보고서/발표자료 등 생성 파일은 uploads/ 폴더에 저장"""
-    llm = ChatOllama(model='qwen2.5:7b-instruct')
-    
+    """LangGraph 워크플로우 기반 통합 처리"""
     if request.method == "POST":
         # 세션 미생성 시 강제 생성
         if not request.session.session_key:
@@ -88,111 +138,40 @@ def ask_question(request):
         # 세션에서 BufferMemory 불러오기
         memory = get_buffer_memory_from_session(request.session)
 
-        # report_keywords = ['보고서', '보고서 작성', '보고서 초안', '보고서 생성']
-        # pptx_keywords = ['발표문', '발표 자료', '발표자료', '발표 초안', '발표 자료 초안']
-        # summary_keywords = ['요약해줘', '요약본', '3줄요약', '요약문', '핵심만',"정리해줘",'간추려줘']
-        
-        check_intents = check_intent(query)
-        result = llm.invoke(check_intents.format_messages(query=query))
-        intent = normalize_label(result.content)
-        print(intent)
-        # if any(k in query for k in report_keywords):
-        if "[보고서]" in intent :
-            prompt = (
-                '당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로만 친절히 답변해주세요.\n'
-                "아래 문서 내용을 기반으로 다음 조건을 만족하는 보고서를 마크다운(Markdown) 형식으로 작성해줘.\n"
-                "0. 반복되는 말을 하지 않는다.\n"
-                "1. 문서의 주제와 목적, 주요 내용, 결론, 권고사항을 명확히 포함할 것.\n"
-                "2. 목차, 표, 리스트, 강조문구 등은 문서 내용을 반영하여 구성할 것.\n"
-                "3. 과도한 추론이나 창작은 하지 말고, 문서에 없는 정보는 생성하지 마라.\n"
-                "4. 어떤 종류의 문서든 적절한 구조의 보고서 초안이 되도록 작성할 것.\n"
-                "5. 표지(제목), 목차, 본문(각 항목별 요약/분석/핵심 내용), 결론 및 권고사항 순으로 작성.\n"
-                "사용자 요청: "
-                + query
-            )
-            markdown = question_answer_with_memory(file_path, prompt, memory, tokens=4096).strip()
-
-            unique_id = uuid.uuid4().hex
-            docx_name = "report_sample.docx"
-            docx_path = os.path.join(UPLOADS_DIR, docx_name)
-            markdown_to_styled_docx(markdown, output_path=docx_path)
-
-            # BufferMemory를 세션에 저장
-            save_buffer_memory_to_session(request.session, memory)
-
-            return JsonResponse({
-                "report_markdown": markdown,
-                "report_file_url": f"/download_report/?filename={docx_name}"
-            })
-
-        # elif any(k in query for k in pptx_keywords):
-        elif "[발표]" in intent :
-            prompt = f"""
-                    [user] {query}
-                    [system]
-                    당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로 친절히 답변해주세요.
-                    
-                    당신은 AI 발표자료 자동화 전문가입니다.
-                    아래 [발표자료]의 내용을 바탕으로 실제 PPT 슬라이드를 만들기 위한 "슬라이드 구성 텍스트"를 한국어로만 작성해주세요.
-
-                    조건:
-                    1. 전체 내용을 5~10개 슬라이드로 논리적으로 나누세요.
-                    2. 각 슬라이드는 반드시 아래와 같이 작성합니다:
-
-                    [슬라이드 N]
-                    제목: (슬라이드 제목, 발표 흐름에 맞게)
-                    핵심 포인트:
-                    - (핵심 메시지1, 문서 내용 기반)
-                    - (핵심 메시지2)
-                    - (필요하면 추가)
-
-                    3. 슬라이드 표지(제목/프로젝트 명)와 마지막 슬라이드(결론/요약/권고)는 꼭 포함하세요.
-                    4. 발표 흐름(도입 → 목적/배경 → 주요 내용/분석 → 결론/권고)에 따라 슬라이드를 구성하세요.
-                    5. 각 슬라이드의 '제목'과 '핵심 포인트'는 원문 내용에서 최대한 추출하고, 없는 내용은 과도하게 상상/창작하지 마세요.
-                    6. 불필요한 서문, 해설, 기타 설명은 절대 작성하지 말고, 반드시 [슬라이드 N] ~ 형식만 반복하세요.
-                    7. 반복되는 말은 하지 마세요.
-                    8. 답변은 한국어로만 합니다
-
-                    [발표자료]
-                    """ 
-            markdown = question_answer_with_memory(file_path, prompt, memory, tokens=4096).strip()
-
-            unique_id = uuid.uuid4().hex
-            pptx_name = f"pptx_sample.pptx"
-            pptx_path = os.path.join(UPLOADS_DIR, pptx_name)
-            save_structured_text_to_pptx(markdown, output_path=pptx_path)
-
-            save_buffer_memory_to_session(request.session, memory)
-
-            return JsonResponse({
-                "report_markdown": markdown,
-                "report_file_url": f"/download_report/?filename={pptx_name}"
-            })
+        try:
+            # LangGraph 워크플로우 실행
+            result = execute_workflow(query, file_path, memory)
             
-        # elif any(k in query for k in summary_keywords):
-        elif "[요약]" in intent :
-            prompt = f"""
-                    [system]
-                    당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 아래의 내용에 한국어로 친절히 답변해주세요.
-                    당신은 요약을 도와주는 어시스턴트입니다.
-                    한국어로 답변합니다.
-                    
-                    - 구체적인 출처 경로 또는 예시를 제시하고
-                    - 문장 구조를 명확히 하며
-                    - 실무적으로 바로 활용할 수 있도록
-                    - 반복되는 말은 하지 않고
-                    
-                    한국어로 정확하고 친절하게 답변해주세요.
-                    [user] {query}
-                    """ 
-            answer = question_answer_with_memory(file_path, query, memory, tokens=1024)
-
+            # 결과 처리
+            if result.success:
+                # BufferMemory를 세션에 저장
+                save_buffer_memory_to_session(request.session, memory)
+                
+                # 태스크별 응답 형식
+                if result.task_type in [TaskType.REPORT, TaskType.PRESENTATION]:
+                    filename = result.output_file_path.split('/')[-1] if result.output_file_path else None
+                    return JsonResponse({
+                        "report_markdown": result.final_response,
+                        "report_file_url": f"/download_report/?filename={filename}" if filename else None
+                    })
+                else:
+                    # 요약, 질의응답 등
+                    return JsonResponse({
+                        "answer": result.final_response
+                    })
+            else:
+                # 에러 처리
+                return JsonResponse({
+                    "answer": result.final_response,
+                    "error": result.error_message
+                })
+                
+        except Exception as e:
+            # 폴백: 기존 시스템 사용
+            print(f"[LangGraph 워크플로우 실패] {str(e)} - 기존 시스템으로 폴백")
+            answer = question_answer_with_memory(file_path, query, memory)
             save_buffer_memory_to_session(request.session, memory)
             return JsonResponse({"answer": answer})
-
-        answer = question_answer_with_memory(file_path, query, memory)
-        save_buffer_memory_to_session(request.session, memory)
-        return JsonResponse({"answer": answer})
 
     return JsonResponse({"error": "Invalid method"}, status=405)
 

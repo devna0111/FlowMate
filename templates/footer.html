@@ -1,0 +1,275 @@
+<!-- 통일된 푸터 템플릿 -->
+<footer id="contact">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>FlowMate AI</h3>
+                <p>로컬 환경에서 안전하고 효율적인<br>AI 기반 업무 솔루션</p>
+            </div>
+            <div class="footer-section">
+                <h3>핵심 기술</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li>• Ollama qwen2.5:7b</li>
+                    <li>• BGE-M3 Embedding</li>
+                    <li>• Local Vector Database</li>
+                    <li>• On-premise Deployment</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>주요 기능</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li>• AI 채팅 어시스턴트</li>
+                    <li>• 문서 분석 & 요약</li>
+                    <li>• 프레젠테이션 피드백</li>
+                    <li>• HR 업무평가 예측</li>
+                </ul>
+            </div>
+        </div>
+        <div class="contact-info">
+            <h3 style="text-align:center; color:white;">연락처 & 서비스</h3><br>
+            <table style="border-collapse: collapse; margin: 0 auto; text-align: left; color:white;">
+                <tr>
+                    <td style="padding: 6px 20px;">고정현</td>
+                    <td style="padding: 6px 20px; text-align:center;">spellrain@naver.com</td>
+                    <td style="padding: 6px 20px;">
+                        <a href="https://github.com/k-j-hyun" style="color: white; text-decoration: none;">git연결하기</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 20px;">김도현</td>
+                    <td style="padding: 6px 20px; text-align:center;">kimdohyun222@naver.com</td>
+                    <td style="padding: 6px 20px;">
+                        <a href="https://github.com/starfish99600" style="color: white; text-decoration: none;">git연결하기</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 20px;">정종혁</td>
+                    <td style="padding: 6px 20px; text-align:center;">devna0111@gmail.com</td>
+                    <td style="padding: 6px 20px;">
+                        <a href="https://github.com/devna0111" style="color: white; text-decoration: none;">git연결하기</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 20px;">장슬찬</td>
+                    <td style="padding: 6px 20px; text-align:center;">jsc980115@naver.com</td>
+                    <td style="padding: 6px 20px;">
+                        <a href="https://github.com/jangseulchan" style="color: white; text-decoration: none;">git연결하기</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 20px;">박선우</td>
+                    <td style="padding: 6px 20px; text-align:center;">du5968@daum.net</td>
+                    <td style="padding: 6px 20px;">
+                        <a href="https://github.com/gulbiworker" style="color: white; text-decoration: none;">git연결하기</a>
+                    </td>
+                </tr>
+            </table><br>
+
+            <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'signup' %}" class="footer-btn footer-btn-primary">무료 체험하기</a>
+                    <a href="{% url 'user_login' %}" class="footer-btn footer-btn-secondary">로그인</a>
+                {% else %}
+                    <a href="{% url 'chat_page' %}" class="footer-btn footer-btn-primary">AI 채팅</a>
+                    <a href="/presentation/" class="footer-btn footer-btn-secondary">발표 분석</a>
+                    <a href="{% url 'hr_evaluation_page' %}" class="footer-btn footer-btn-secondary">HR 평가</a>
+                {% endif %}
+            </div>
+            <p style="margin-top: 1rem; opacity: 0.8;">
+                기업용 데모 및 상담 문의 환영합니다
+            </p>
+        </div>
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #555;">
+            <p>&copy; 2025 FlowMate AI Team. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- 통일된 플로팅 액션 버튼 (채팅 페이지에서는 숨김) -->
+{% if user.is_authenticated %}
+<div class="floating-actions" id="floatingActions">
+    <a href="{% url 'chat_page' %}" class="fab">
+        <span class="fab-tooltip">AI 채팅 시작하기</span>
+        AI 채팅
+    </a>
+    <a href="/presentation/" class="fab">
+        <span class="fab-tooltip">발표 분석하기</span>
+        발표 분석
+    </a>
+    <a href="{% url 'hr_evaluation_page' %}" class="fab">
+        <span class="fab-tooltip">HR 평가하기</span>
+        HR 평가
+    </a>
+</div>
+{% endif %}
+
+<style>
+/* 통일된 푸터 스타일 */
+footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.footer-section h3 {
+    margin-bottom: 1rem;
+    color: #f59e0b;
+}
+
+.contact-info {
+    background: linear-gradient(135deg, #6366f1, #1e40af);
+    padding: 2rem;
+    border-radius: 10px;
+    margin-top: 2rem;
+}
+
+/* 통일된 버튼 스타일 */
+.footer-btn {
+    display: inline-block;
+    background: linear-gradient(45deg, #f59e0b, #fbbf24);
+    color: #333;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+    border: 2px solid transparent;
+    text-align: center;
+    min-width: 160px;
+}
+
+.footer-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255,215,0,0.6);
+}
+
+.footer-btn-secondary {
+    background: transparent;
+    border: 2px solid #f59e0b;
+    color: white;
+}
+
+.footer-btn-secondary:hover {
+    background: #f59e0b;
+    color: #333;
+}
+
+/* 통일된 플로팅 액션 버튼 */
+.floating-actions {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* 채팅 페이지에서 플로팅 버튼 숨김 */
+body.chat-page .floating-actions {
+    display: none;
+}
+
+.fab {
+    display: inline-block;
+    background: linear-gradient(45deg, #f59e0b, #fbbf24);
+    color: #333;
+    padding: 12px 20px;
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+    border: 2px solid transparent;
+    text-align: center;
+    min-width: 80px;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.fab:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255,215,0,0.6);
+}
+
+.fab-tooltip {
+    position: absolute;
+    right: 100px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.fab-tooltip::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-left-color: #333;
+}
+
+.fab:hover .fab-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+@media (max-width: 768px) {
+    .floating-actions {
+        bottom: 80px;
+        right: 15px;
+        gap: 8px;
+    }
+    
+    .fab {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        min-width: 60px;
+        border-radius: 20px;
+    }
+    
+    .fab-tooltip {
+        display: none;
+    }
+    
+    .footer-btn {
+        font-size: 1rem;
+        padding: 12px 24px;
+        margin: 0.5rem;
+    }
+}
+
+/* 데스크톱에서 플로팅 버튼 위치 조정 */
+@media (min-width: 769px) {
+    .floating-actions {
+        bottom: 40px;
+        right: 40px;
+    }
+}
+</style>
