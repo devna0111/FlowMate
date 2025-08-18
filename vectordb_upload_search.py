@@ -59,7 +59,8 @@ def get_qdrant_client():
 
 def get_llm(tokens=256):
     """LLM 인스턴스 생성 (호환성 처리)"""
-    model_name = "qwen2.5:7b-instruct"
+    model_name = "anpigon/qwen2.5-7b-instruct-kowiki:latest"
+    # model_name = "exaone3.5:latest"
     try:
         return ChatOllama(model=model_name, temperature=0.2, num_predict=tokens)
     except TypeError:
@@ -191,9 +192,7 @@ def create_enhanced_prompt(query: str, combined_text: str, history: str, task_ty
 **ONLY Korean language allowed. Chinese/English/Japanese strictly forbidden.**
 **只能用韩语回答，严禁使用中文或其他语言。**
 
-당신은 Flow팀에서 만든 FlowMate:사내업무길라잡이 AI입니다. 
 - 모든 답변은 반드시 한국어로만 작성해주세요
-- 자기소개 요청시 Flow팀에서 만든 FlowMate라고 답변하세요
 - 요약, 보고서 작성, 발표자료 작성에 특화되어있습니다
 - 중국어나 영어가 포함된 답변은 절대 제공하지 마세요
 

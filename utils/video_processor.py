@@ -33,7 +33,9 @@ def summarize_transcript(transcript: str) -> str:
     prompt = ChatPromptTemplate.from_template(
         "다음 발표 원고 내용을 간결하고 핵심 위주로 요약해줘:\n\n{transcript}"
     )
-    llm = ChatOllama(model="qwen2.5vl:7b")
+    model_name = "anpigon/qwen2.5-7b-instruct-kowiki:latest"
+    # model_name = "exaone3.5:latest"
+    llm = ChatOllama(model=model_name)
     chain = prompt | llm
     return chain.invoke({"transcript": transcript}).content
 

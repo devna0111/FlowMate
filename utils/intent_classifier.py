@@ -2,7 +2,7 @@
 from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
 from langchain_ollama import ChatOllama
 
-llm = ChatOllama(model="qwen2.5:7b-instruct")
+llm = ChatOllama(model="anpigon/qwen2.5-7b-instruct-kowiki:latest")
 # 1) 예시 프롬프트 (입력/라벨 페어)
 def check_intent(query) :
     example_prompt = ChatPromptTemplate.from_messages([

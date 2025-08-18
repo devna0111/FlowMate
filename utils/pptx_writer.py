@@ -178,7 +178,7 @@ class PPTXGenerator:
             title_frame = title_shape.text_frame
             title_frame.text = title
             title_paragraph = title_frame.paragraphs[0]
-            title_paragraph.font.size = Pt(36)
+            title_paragraph.font.size = Pt(24)
             title_paragraph.font.bold = True
             title_paragraph.font.color.rgb = self.theme_colors['primary']
             
@@ -233,7 +233,7 @@ class PPTXGenerator:
 def generate_slide_structure(text_content):
     """LLM을 사용하여 슬라이드 구조 생성"""
     try:
-        llm = ChatOllama(model="qwen2.5:7b-instruct")
+        llm = ChatOllama(model="anpigon/qwen2.5-7b-instruct-kowiki:latest")
         
         prompt = f"""
 당신은 한국어 발표 슬라이드 전문가입니다.
@@ -268,27 +268,102 @@ def generate_slide_structure(text_content):
         return None
 
 def parse_slide_structure(structured_text):
-    """구조화된 텍스트를 파싱하여 슬라이드 데이터 추출"""
+    """구조화된 텍스트를 파싱하여 슬라이드 데이터 추출 - qwen 모델 최적화"""
     try:
         slides = []
-        slide_blocks = re.split(r"\[슬라이드 \d+\]", structured_text)
+        logger.info(f"파싱할 텍스트: {structured_text[:500]}...")  # 디버깅용 로그
+        
+        # qwen 모델의 출력 패턴에 맞춘 슬라이드 구분자
+        slide_patterns = [
+            r"\[슬라이드 \d+\]",
+            r"슬라이드 \d+:",
+            r"### 슬라이드 \d+",
+            r"## 슬라이드 \d+",
+            r"\d+\.\s*슬라이드"
+        ]
+        
+        # 가장 적합한 패턴 찾기
+        best_pattern = None
+        for pattern in slide_patterns:
+            matches = re.findall(pattern, structured_text)
+            if matches:
+                best_pattern = pattern
+                logger.info(f"사용 패턴: {pattern}, 찾은 매치: {len(matches)}개")
+                break
+        
+        if not best_pattern:
+            # 패턴이 없으면 폴백 처리
+            logger.warning("슬라이드 구분자를 찾을 수 없음, 폴백 모드 사용")
+            return create_fallback_slides(structured_text)
+        
+        # 슬라이드 블록 분할
+        slide_blocks = re.split(best_pattern, structured_text)
         slide_blocks = [block.strip() for block in slide_blocks if block.strip()]
         
-        for block in slide_blocks:
-            # 제목 추출
-            title_match = re.search(r"제목:\s*(.+)", block)
-            title = title_match.group(1).strip() if title_match else "제목 없음"
+        for i, block in enumerate(slide_blocks):
+            # qwen 모델 출력에 최적화된 제목 추출
+            title_patterns = [
+                r"제목:\s*(.+)",
+                r"\*\*제목\*\*:\s*(.+)",
+                r"제목\s*:\s*(.+)",
+                r"^(.+?)(?:\n|$)"  # 첫 번째 줄을 제목으로
+            ]
             
-            # 핵심 포인트 추출
-            points = re.findall(r"-\s+(.+)", block)
+            title = f"슬라이드 {i+1}"  # 기본 제목
+            for pattern in title_patterns:
+                title_match = re.search(pattern, block, re.MULTILINE | re.DOTALL)
+                if title_match:
+                    candidate_title = title_match.group(1).strip()
+                    # 제목이 너무 길지 않고 적절한 경우에만 사용
+                    if len(candidate_title) < 100 and not candidate_title.startswith('핵심'):
+                        title = candidate_title
+                        break
             
-            # 테이블 데이터 검색
+            # qwen 모델에 최적화된 핵심 포인트 추출
+            bullet_patterns = [
+                r"핵심 포인트:\s*\n((?:[-*•]\s+.+\n?)+)",  # "핵심 포인트:" 이후의 불릿들
+                r"[-*•]\s+(.+)",  # 일반 불릿 포인트
+                r"\d+\.\s+(.+)",  # 숫자 리스트
+                r"▶\s+(.+)",     # 화살표
+                r"✓\s+(.+)"      # 체크마크
+            ]
+            
+            points = []
+            
+            # 먼저 "핵심 포인트:" 섹션을 찾아 처리
+            core_points_match = re.search(r"핵심 포인트:\s*\n((?:[-*•]\s+.+(?:\n|$))+)", block, re.MULTILINE)
+            if core_points_match:
+                core_section = core_points_match.group(1)
+                points = re.findall(r"[-*•]\s+(.+)", core_section)
+            else:
+                # 일반적인 불릿 포인트 패턴 사용
+                for pattern in bullet_patterns[1:]:  # 첫 번째 패턴 제외
+                    found_points = re.findall(pattern, block, re.MULTILINE)
+                    if found_points:
+                        points.extend(found_points)
+                        break  # 첫 번째로 찾은 패턴만 사용
+            
+            # 포인트 정리 및 필터링
+            cleaned_points = []
+            for point in points:
+                cleaned_point = point.strip()
+                # 너무 짧거나 의미없는 포인트 제외
+                if len(cleaned_point) > 3 and not cleaned_point.startswith('제목'):
+                    cleaned_points.append(cleaned_point)
+            
+            # 포인트가 여전히 없으면 문장 단위로 분할
+            if not cleaned_points:
+                sentences = [s.strip() for s in block.split('\n') 
+                           if s.strip() and len(s.strip()) > 3 and '제목:' not in s and '핵심 포인트:' not in s]
+                cleaned_points = sentences[:4]  # 최대 4개 포인트
+            
+            # 테이블 데이터 검색 (qwen 모델의 테이블 형식)
             table_pattern = r"\|(.+?)\|"
             table_matches = re.findall(table_pattern, block, re.MULTILINE)
             
             slide_data = {
                 'title': title,
-                'points': points,
+                'points': cleaned_points,
                 'table_data': None,
                 'slide_type': 'content'
             }
@@ -304,19 +379,24 @@ def parse_slide_structure(structured_text):
                 slide_data['slide_type'] = 'table'
             
             # 포인트 수에 따라 레이아웃 결정
-            elif len(points) > 5:
+            elif len(cleaned_points) > 5:
                 slide_data['slide_type'] = 'two_column'
             
-            slides.append(slide_data)
+            # 유효한 슬라이드만 추가
+            if slide_data['title'] and (slide_data['points'] or slide_data['table_data']):
+                slides.append(slide_data)
         
         logger.info(f"슬라이드 파싱 완료: {len(slides)}개 슬라이드")
+        for i, slide in enumerate(slides):
+            logger.info(f"슬라이드 {i+1}: {slide['title']} ({len(slide['points'])}개 포인트)")
+        
         return slides
     except Exception as e:
         logger.error(f"슬라이드 파싱 실패: {e}")
         return []
 
 def create_presentation_from_text(text_content, output_path="output/presentation.pptx"):
-    """텍스트 내용으로부터 프레젠테이션 생성"""
+    """텍스트 내용으로부터 프레젠테이션 생성 - qwen 모델 최적화"""
     try:
         logger.info("프레젠테이션 생성 시작")
         
@@ -335,22 +415,32 @@ def create_presentation_from_text(text_content, output_path="output/presentation
         
         # 슬라이드 데이터 파싱
         slides_data = parse_slide_structure(structured_text)
+        
+        # 파싱 실패 시 폴백: 간단한 슬라이드 생성
         if not slides_data:
-            logger.error("슬라이드 파싱 실패")
+            logger.warning("슬라이드 파싱 실패, 폴백 모드로 간단한 슬라이드 생성")
+            slides_data = create_fallback_slides(structured_text)
+        
+        if not slides_data:
+            logger.error("폴백 슬라이드 생성도 실패")
             return None
         
         # 제목 슬라이드 추가
         if slides_data:
-            main_title = slides_data[0]['title']
+            main_title = slides_data[0]['title'] if slides_data[0]['title'] else "발표 자료"
             generator.add_title_slide(main_title, "FlowMate AI 발표자료")
         
         # 내용 슬라이드 추가
         for slide_data in slides_data:
-            if slide_data['slide_type'] == 'table' and slide_data['table_data']:
-                generator.add_table_slide(slide_data['title'], slide_data['table_data'])
-            else:
-                slide_type = slide_data['slide_type'] if slide_data['slide_type'] != 'content' else 'bullet'
-                generator.add_content_slide(slide_data['title'], slide_data['points'], slide_type)
+            try:
+                if slide_data['slide_type'] == 'table' and slide_data['table_data']:
+                    generator.add_table_slide(slide_data['title'], slide_data['table_data'])
+                else:
+                    slide_type = slide_data['slide_type'] if slide_data['slide_type'] != 'content' else 'bullet'
+                    generator.add_content_slide(slide_data['title'], slide_data['points'], slide_type)
+            except Exception as slide_error:
+                logger.warning(f"슬라이드 추가 실패: {slide_error}, 건너뜀")
+                continue
         
         # 감사 슬라이드 추가
         generator.add_title_slide("감사합니다", "질문이 있으시면 언제든 말씀해 주세요")
@@ -365,6 +455,61 @@ def create_presentation_from_text(text_content, output_path="output/presentation
     except Exception as e:
         logger.error(f"프레젠테이션 생성 중 오류: {e}")
         return None
+
+def create_fallback_slides(text_content):
+    """파싱 실패 시 폴백용 간단한 슬라이드 생성"""
+    try:
+        logger.info("폴백 슬라이드 생성 시작")
+        
+        # 텍스트를 문장 단위로 분할
+        sentences = [s.strip() for s in text_content.split('\n') if s.strip()]
+        
+        if not sentences:
+            sentences = [s.strip() for s in text_content.split('.') if s.strip()]
+        
+        slides = []
+        
+        # 첫 번째 슬라이드: 개요
+        overview_points = sentences[:5] if len(sentences) > 5 else sentences
+        slides.append({
+            'title': '개요',
+            'points': overview_points,
+            'table_data': None,
+            'slide_type': 'content'
+        })
+        
+        # 나머지 내용을 여러 슬라이드로 분할
+        remaining_sentences = sentences[5:] if len(sentences) > 5 else []
+        
+        slide_count = 2
+        chunk_size = 4  # 슬라이드당 4개 포인트
+        
+        for i in range(0, len(remaining_sentences), chunk_size):
+            chunk = remaining_sentences[i:i+chunk_size]
+            if chunk:
+                slides.append({
+                    'title': f'주요 내용 {slide_count - 1}',
+                    'points': chunk,
+                    'table_data': None,
+                    'slide_type': 'content'
+                })
+                slide_count += 1
+        
+        # 최소 1개 슬라이드는 보장
+        if not slides:
+            slides.append({
+                'title': '내용',
+                'points': ['내용을 처리하는 중 문제가 발생했습니다.', '원본 텍스트를 확인해 주세요.'],
+                'table_data': None,
+                'slide_type': 'content'
+            })
+        
+        logger.info(f"폴백 슬라이드 생성 완료: {len(slides)}개")
+        return slides
+        
+    except Exception as e:
+        logger.error(f"폴백 슬라이드 생성 실패: {e}")
+        return []
 
 # 하위 호환성을 위한 함수
 def save_structured_text_to_pptx(whole_text, output_path="output/presentation.pptx"):

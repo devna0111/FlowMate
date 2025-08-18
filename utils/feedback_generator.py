@@ -37,7 +37,9 @@ def generate_feedback(summary: str, audio_features: dict, visual_features: dict)
 
 (꼭 2,000자 이상으로 작성해줘, **반드시 한국어(Korean)로 답변해야해**)
 """)
-    llm = ChatOllama(model="qwen2.5:7b-instruct")  # 적절한 모델로 교체 가능
+    model_name = "anpigon/qwen2.5-7b-instruct-kowiki:latest"
+    # model_name = "exaone3.5:latest"
+    llm = ChatOllama(model=model_name)  # 적절한 모델로 교체 가능
     chain = prompt_template | llm
     return chain.invoke({
         **audio_features,

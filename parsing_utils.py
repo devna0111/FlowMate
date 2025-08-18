@@ -39,9 +39,7 @@ def start_extracting(file_path: str) -> str:
 
 def split_chunks(file_path: str) -> list:
     """
-    1. 요약문
-    2. 발표문
-    3. 문서에서 추출한 전체 텍스트를 의미 있는 청크 단위로 나눈 결과,
+    문서에서 추출한 전체 텍스트를 의미 있는 청크 단위로 나눈 결과
     LangChain Document 리스트로 반환
     """
     print("text_추출시작")
