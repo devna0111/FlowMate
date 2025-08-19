@@ -142,7 +142,7 @@ def data_to_vectorstore(file_path: str):
         vector_store = Qdrant(
             client=client,
             collection_name=collection_name,
-            embeddings=OllamaEmbeddings(model="bge-m3:567m")
+            embeddings=OllamaEmbeddings(model="bona/bge-m3-korean")
         )
         
         print("임베딩 및 저장 중...")

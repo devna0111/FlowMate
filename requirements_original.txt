@@ -1,0 +1,15 @@
+# PyTorch with CUDA support (for faster-whisper and mediapipe compatibility)
+--find-links https://download.pytorch.org/whl/cu121
+torch==2.5.1+cu121
+torchaudio==2.5.1+cu121 
+torchvision==0.20.1+cu121
+
+# Or using git URLs:
+# torch @ git+https://github.com/pytorch/pytorch.git
+# torchaudio @ git+https://github.com/pytorch/audio.git
+# torchvision @ git+https://github.com/pytorch/vision.git
+
+# Rest of requirements
+absl-py==2.3.1
+accelerate==1.9.0
+# ... (나머지 패키지들)
