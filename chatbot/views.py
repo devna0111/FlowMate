@@ -269,31 +269,24 @@ def hr_evaluation_predict(request):
         try:
             data = json.loads(request.body)
             
-            # 입력 데이터 추출
-            age = int(data.get('age'))
-            project = int(data.get('project'))
-            salary = int(data.get('salary'))
-            number_of_turnovers = int(data.get('number_of_turnovers'))
-            surround_eval = int(data.get('surround_eval'))
-            personal_history = int(data.get('personal_history'))
-            edu_trips_lastyear = int(data.get('edu_trips_lastyear'))
-            currentyear_at_company = int(data.get('currentyear_at_company'))
-            buisnesstrip = int(data.get('buisnesstrip'))
-            when_enroll = int(data.get('when_enroll'))
+            # 새로운 hr_predict 함수에 맞게 딕셔너리 형태로 데이터 준비
+            record = {
+                "출장": data.get('출장'),
+                "전년도교육출장횟수": data.get('전년도교육출장횟수'),
+                "이직회수": data.get('이직회수'),
+                "참여프로젝트": data.get('참여프로젝트'),
+                "월급_KRW": data.get('월급_KRW'),
+                "경력": data.get('경력'),
+                "현회사근속년수": data.get('현회사근속년수'),
+                "근속연차": data.get('근속연차'),
+                "주변평가": data.get('주변평가'),
+                "부서": data.get('부서'),
+                "전공": data.get('전공'),
+                "직급관리자여부": data.get('직급관리자여부')
+            }
             
             # HR 평가 예측 수행
-            result = hr_predict(
-                age=age,
-                project=project,
-                salary=salary,
-                number_of_turnovers=number_of_turnovers,
-                surround_eval=surround_eval,
-                personal_history=personal_history,
-                edu_trips_lastyear=edu_trips_lastyear,
-                currentyear_at_company=currentyear_at_company,
-                buisnesstrip=buisnesstrip,
-                when_enroll=when_enroll
-            )
+            result = hr_predict(record)
             
             return JsonResponse({
                 "success": True,

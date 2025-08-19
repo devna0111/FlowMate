@@ -16,6 +16,11 @@
 # import tensorflow as tf
 # print("현재 GPU 감지:", tf.config.list_physical_devices('GPU'))
 
-import sklearn as skl
+# import sklearn as skl
 
-print(skl.__version__)
+# print(skl.__version__)
+
+import joblib
+
+model = joblib.load('final_model.pkl')
+print(model)

@@ -126,7 +126,7 @@ class FlowMateWorkflow:
             vector_store = data_to_vectorstore(state.file_path)
             if vector_store:
                 # 태스크별 검색 문서 수 조정
-                k = 1000 if state.task_type in [TaskType.REPORT, TaskType.PRESENTATION] else 100
+                k = 1000 if state.task_type in [TaskType.REPORT, TaskType.PRESENTATION] else 500
                 docs = vector_store.similarity_search(state.query, k=k)
                 state.documents = [doc.page_content for doc in docs]
                 print(f"[문서 검색] {len(state.documents)}개 문서 검색됨")

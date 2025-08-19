@@ -164,7 +164,8 @@
             margin-bottom: 0.5rem;
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group select {
             padding: 0.75rem;
             border: 1px solid #d0d7de;
             border-radius: 8px;
@@ -172,7 +173,8 @@
             transition: border-color 0.3s;
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #6366f1;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
@@ -335,44 +337,65 @@
                 <form id="hrForm">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="age">나이</label>
-                            <input type="number" id="age" name="age" required min="20" max="70" value="34">
-                        </div>
-                        <div class="form-group">
-                            <label for="project">참여 프로젝트 수</label>
-                            <input type="number" id="project" name="project" required min="0" max="50" value="3">
-                        </div>
-                        <div class="form-group">
-                            <label for="salary">월급 (원)</label>
-                            <input type="number" id="salary" name="salary" required min="1000000" max="20000000" value="5838750">
-                        </div>
-                        <div class="form-group">
-                            <label for="number_of_turnovers">이직 횟수</label>
-                            <input type="number" id="number_of_turnovers" name="number_of_turnovers" required min="0" max="10" value="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="surround_eval">주변 평가 (1~4점)</label>
-                            <input type="number" id="surround_eval" name="surround_eval" required min="1" max="4" value="3">
-                        </div>
-                        <div class="form-group">
-                            <label for="personal_history">경력 (년)</label>
-                            <input type="number" id="personal_history" name="personal_history" required min="1" max="50" value="5">
+                            <label for="buisnesstrip">출장 횟수</label>
+                            <input type="number" id="buisnesstrip" name="출장" required min="0" max="100" value="2">
                         </div>
                         <div class="form-group">
                             <label for="edu_trips_lastyear">전년도 교육출장 횟수</label>
-                            <input type="number" id="edu_trips_lastyear" name="edu_trips_lastyear" required min="0" max="20" value="2">
+                            <input type="number" id="edu_trips_lastyear" name="전년도교육출장횟수" required min="0" max="20" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="number_of_turnovers">이직 횟수</label>
+                            <input type="number" id="number_of_turnovers" name="이직회수" required min="0" max="10" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="project">참여 프로젝트 수</label>
+                            <input type="number" id="project" name="참여프로젝트" required min="0" max="50" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="salary">월급 (원)</label>
+                            <input type="number" id="salary" name="월급_KRW" required min="1000000" max="20000000" value="5000000">
+                        </div>
+                        <div class="form-group">
+                            <label for="personal_history">경력 (년)</label>
+                            <input type="number" id="personal_history" name="경력" required min="1" max="50" value="5">
                         </div>
                         <div class="form-group">
                             <label for="currentyear_at_company">현 회사 근속년수</label>
-                            <input type="number" id="currentyear_at_company" name="currentyear_at_company" required min="1" max="50" value="5">
+                            <input type="number" id="currentyear_at_company" name="현회사근속년수" required min="1" max="50" value="5">
                         </div>
                         <div class="form-group">
-                            <label for="buisnesstrip">출장 횟수</label>
-                            <input type="number" id="buisnesstrip" name="buisnesstrip" required min="0" max="100" value="2">
+                            <label for="continuous_years">근속연차</label>
+                            <input type="number" id="continuous_years" name="근속연차" required min="1" max="50" value="5">
                         </div>
                         <div class="form-group">
-                            <label for="when_enroll">입사 나이</label>
-                            <input type="number" id="when_enroll" name="when_enroll" required min="18" max="65" value="29">
+                            <label for="surround_eval">주변 평가 (1~4점)</label>
+                            <input type="number" id="surround_eval" name="주변평가" required min="1" max="4" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="department">부서</label>
+                            <select id="department" name="부서" required>
+                                <option value="0">R&D</option>
+                                <option value="1" selected>영업</option>
+                                <option value="2">사무직</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="major">전공</label>
+                            <select id="major" name="전공" required>
+                                <option value="공학계열" selected>공학계열</option>
+                                <option value="자연과학계열">자연과학계열</option>
+                                <option value="사회과학계열">사회과학계열</option>
+                                <option value="인문학">인문학</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="manager">직급관리자여부</label>
+                            <select id="manager" name="직급관리자여부" required>
+                                <option value="0" selected>일반직</option>
+                                <option value="1">관리직 이상</option>
+                            </select>
                         </div>
                     </div>
                     <button type="submit" class="predict-btn" id="predictBtn">업무평가 예측하기</button>
@@ -382,22 +405,25 @@
             <div class="info-section">
                 <h3>입력 정보 안내</h3>
                 <ul class="info-list">
-                    <li><strong>나이:</strong> 현재 나이 (예: 34)</li>
+                    <li><strong>출장 횟수:</strong> 일반 출장 참여 횟수</li>
+                    <li><strong>전년도 교육출장 횟수:</strong> 작년 교육 출장 참여 횟수</li>
+                    <li><strong>이직 횟수:</strong> 지금까지의 이직 경험 횟수</li>
                     <li><strong>참여 프로젝트 수:</strong> 지금까지 참여한 총 프로젝트 개수</li>
                     <li><strong>월급:</strong> 현재 월급 (원 단위)</li>
-                    <li><strong>이직 횟수:</strong> 지금까지의 이직 경험 횟수</li>
-                    <li><strong>주변 평가:</strong> 동료들의 평가 (1~4점 척도)</li>
                     <li><strong>경력:</strong> 총 근무 경력 (년)</li>
-                    <li><strong>전년도 교육출장 횟수:</strong> 작년 교육 출장 참여 횟수</li>
                     <li><strong>현 회사 근속년수:</strong> 현재 회사에서 근무한 기간</li>
-                    <li><strong>출장 횟수:</strong> 일반 출장 참여 횟수</li>
-                    <li><strong>입사 나이:</strong> 현재 회사에 입사했을 때의 나이</li>
+                    <li><strong>근속연차:</strong> 총 근속 기간</li>
+                    <li><strong>주변 평가:</strong> 동료들의 평가 (1~4점 척도)</li>
+                    <li><strong>부서:</strong> 소속 부서 (R&D, 영업, 사무직)</li>
+                    <li><strong>전공:</strong> 학업 전공 분야</li>
+                    <li><strong>직급관리자여부:</strong> 관리직 여부</li>
                 </ul>
                 
                 <div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #fff2e8 0%, #fff8f0 100%); border: 1px solid #f4d4a7; border-radius: 12px;">
                     <h4 style="color: #f57c00; margin-bottom: 1rem;">예측 모델 정보</h4>
-                    <p style="color: #333; line-height: 1.6; margin-bottom: 0.5rem;">• <strong>모델:</strong> RandomForest Classifier</p>
-                    <p style="color: #333; line-height: 1.6; margin-bottom: 0.5rem;">• <strong>정확도:</strong> 약 85% (정밀도 기준)</p>
+                    <p style="color: #333; line-height: 1.6; margin-bottom: 0.5rem;">• <strong>모델:</strong> XGBoost Classifier</p>
+                    <p style="color: #333; line-height: 1.6; margin-bottom: 0.5rem;">• <strong>전체 정확도:</strong> 85%</p>
+                    <p style="color: #333; line-height: 1.6; margin-bottom: 0.5rem;">• <strong>정밀도:</strong> 보통 85.3%, 우수 100%</p>
                     <p style="color: #333; line-height: 1.6; margin-bottom: 0.5rem;">• <strong>예측 결과:</strong> "우수" 또는 "보통"</p>
                     <p style="color: #333; line-height: 1.6;">• <strong>처리 시간:</strong> 실시간 즉시 예측</p>
                 </div>
@@ -431,7 +457,14 @@
             const formData = new FormData(form);
             const data = {};
             for (let [key, value] of formData.entries()) {
-                data[key] = parseInt(value);
+                // 숫자형 필드는 정수로, 문자열 필드는 문자열로 처리
+                if (['부서', '직급관리자여부'].includes(key)) {
+                    data[key] = parseInt(value);
+                } else if (['전공'].includes(key)) {
+                    data[key] = value;
+                } else {
+                    data[key] = parseInt(value);
+                }
             }
 
             try {

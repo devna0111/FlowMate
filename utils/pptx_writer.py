@@ -70,7 +70,7 @@ class PPTXGenerator:
                 subtitle_shape.text = subtitle
                 subtitle_paragraph = subtitle_shape.text_frame.paragraphs[0]
                 subtitle_paragraph.alignment = PP_ALIGN.CENTER
-                subtitle_paragraph.font.size = Pt(24)
+                subtitle_paragraph.font.size = Pt(22)
                 subtitle_paragraph.font.color.rgb = self.theme_colors['text']
             
             logger.info(f"제목 슬라이드 추가: {title}")
@@ -127,7 +127,7 @@ class PPTXGenerator:
                 content_frame = slide.placeholders[1].text_frame
                 content_frame.clear()
                 
-                icons = ["▶", "✓", "★", "●", "◆"]
+                icons = ["-"] * 5
                 
                 for i, point in enumerate(points):
                     p = content_frame.add_paragraph()
@@ -314,8 +314,19 @@ def parse_slide_structure(structured_text):
                 title_match = re.search(pattern, block, re.MULTILINE | re.DOTALL)
                 if title_match:
                     candidate_title = title_match.group(1).strip()
-                    # 제목이 너무 길지 않고 적절한 경우에만 사용
-                    if len(candidate_title) < 100 and not candidate_title.startswith('핵심'):
+                    
+                    # "제목:" 접두사 제거
+                    if candidate_title.startswith('제목:'):
+                        candidate_title = candidate_title[3:].strip()
+                    elif candidate_title.startswith('제목 :'):
+                        candidate_title = candidate_title[4:].strip()
+                    
+                    # 제목에 '핵심 포인트' 또는 '핵심'이 포함되지 않고, 적절한 길이인 경우에만 사용
+                    if (len(candidate_title) < 100 and 
+                        not candidate_title.startswith('핵심') and 
+                        '핵심 포인트' not in candidate_title and
+                        '핵심포인트' not in candidate_title and
+                        candidate_title):  # 빈 문자열이 아닌 경우만
                         title = candidate_title
                         break
             
